@@ -4,6 +4,7 @@ import json
 import uuid
 
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth import authenticate
 from django.core import serializers
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -30,13 +31,16 @@ def signup(request):
         # this means we were sent a bad request - let the front end know
         return HttpResponse("failure")
 
+    if User.objects.filter(username=form.cleaned_data['username']).exists():
+        return HttpResponse("user already exists sucka")
+
     new_user = User(
-        username=form.username,
-        email=form.email,
-        phone=form.phone,
-        password=make_password(form.password, 'saltysalt', 'bcrypt'),
-        first_name=form.first_name,
-        last_name=form.last_name,
+        username=form.cleaned_data['username'],
+        email=form.cleaned_data['email'],
+        phone=form.cleaned_data['phone'],
+        password=make_password(form.cleaned_data['password'], 'saltysalt', 'bcrypt'),
+        first_name=form.cleaned_data['first_name'],
+        last_name=form.cleaned_data['last_name'],
         access_token=uuid.uuid4(),
     ).save()
 
@@ -57,7 +61,8 @@ def login(request):
         # this means we were sent a bad request - let someone know :o
         return HttpResponse("failure")
 
-    if User.objects.filter(username=form.cleaned_data['username']):
-        return HttpResponse("user found")
-
-    return HttpResponse("user not found")
+    user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
+    if user is not None:
+        return HttpResponse("user had the right credentials")
+    else:
+        return HttpResponse("wrong credentials sucker")
