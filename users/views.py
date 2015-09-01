@@ -31,8 +31,11 @@ def signup(request):
         # this means we were sent a bad request - let the front end know
         return HttpResponse("failure")
 
+
     if User.objects.filter(username=form.cleaned_data['username']).exists():
         return HttpResponse("user already exists sucka")
+
+    # check for other info
 
     new_user = User(
         username=form.cleaned_data['username'],
