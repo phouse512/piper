@@ -14,9 +14,14 @@ from users.models import User
 from users.forms import SignupForm
 from users.forms import LoginForm
 
+from djcelery.models import PeriodicTask
+
+
 
 def index(request):
     users = User.objects.get()
+
+    PeriodicTask.objects.update_or_create()
     return HttpResponse(serializers.serialize('json', [users]), content_type="application/json")
 
 
