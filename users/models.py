@@ -10,5 +10,29 @@ class User(models.Model):
     password = models.CharField(max_length=30)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
-    access_token = models.CharField(unique=True, max_length=400)
     last_action = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'users'
+
+
+class AccountLogin(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User)
+    action_time = models.DateTimeField(default=timezone.now)
+    type = models.CharField(max_length=20)
+    location = models.CharField(max_length=100)
+
+    class Meta:
+        db_table = 'account_logins'
+
+
+class UserTokens(models.Model):
+    id = models.AutoField(primary_key=True)
+    access_token = models.CharField(max_length=256)
+    user = models.ForeignKey(User)
+    valid_until = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'user_tokens'
