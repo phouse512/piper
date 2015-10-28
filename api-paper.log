@@ -1,9 +1,0 @@
-[26/Oct/2015 02:07:16] WARNING [py.warnings:116] /Users/PhilipHouse/Documents/Programming/piper/piper/users/models.py:5: RemovedInDjango19Warning: Model class users.models.User doesn't declare an explicit app_label and either isn't in an application in INSTALLED_APPS or else was imported before its application was loaded. This will no longer be supported in Django 1.9.
-  class User(models.Model):
-
-[26/Oct/2015 02:07:24] WARNING [py.warnings:116] /Users/PhilipHouse/Documents/Programming/piper/piper/users/models.py:5: RemovedInDjango19Warning: Model class users.models.User doesn't declare an explicit app_label and either isn't in an application in INSTALLED_APPS or else was imported before its application was loaded. This will no longer be supported in Django 1.9.
-  class User(models.Model):
-
-[26/Oct/2015 02:07:48] WARNING [py.warnings:116] /Users/PhilipHouse/Documents/Programming/piper/piper/users/models.py:5: RemovedInDjango19Warning: Model class users.models.User doesn't declare an explicit app_label and either isn't in an application in INSTALLED_APPS or else was imported before its application was loaded. This will no longer be supported in Django 1.9.
-  class User(models.Model):
-
