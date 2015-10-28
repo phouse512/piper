@@ -8,7 +8,7 @@ class Group(models.Model):
 	name = models.CharField(max_length=30)
 
 	class Meta:
-		db_name = 'groups'
+		db_table = 'groups'
 
 
 class GroupMembership(models.Model):
@@ -17,4 +17,4 @@ class GroupMembership(models.Model):
 	group = models.ForeignKey(Group)
 
 	class Meta:
-		db_name = 'groups_membership'
+		db_table = 'groups_membership'

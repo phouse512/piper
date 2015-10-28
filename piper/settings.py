@@ -38,6 +38,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'djcelery',
     'users',
+    'ingester',
+    'groups'
 )
 
 MIDDLEWARE_CLASSES = (
