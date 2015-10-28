@@ -21,7 +21,6 @@ from djcelery.models import PeriodicTask
 def index(request):
     users = User.objects.get()
 
-    PeriodicTask.objects.update_or_create()
     return HttpResponse(serializers.serialize('json', [users]), content_type="application/json")
 
 
