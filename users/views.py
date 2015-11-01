@@ -5,7 +5,7 @@ import uuid
 
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
-from django.core import serializers
+from django.core.serializers import serialize
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -14,14 +14,11 @@ from users.models import User
 from users.forms import SignupForm
 from users.forms import LoginForm
 
-from djcelery.models import PeriodicTask
-
-
 
 def index(request):
-    users = User.objects.get()
-
-    return HttpResponse(serializers.serialize('json', [users]), content_type="application/json")
+    users = User.objects.all()
+    return HttpResponse(serialize('json', users),
+                        content_type="application/json")
 
 
 @require_POST

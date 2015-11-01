@@ -1,3 +1,4 @@
+from django.core.serializers.python import Serializer
 from django.db import models
 from django.utils import timezone
 
@@ -36,3 +37,9 @@ class UserTokens(models.Model):
 
     class Meta:
         db_table = 'user_tokens'
+
+
+class UserSerializer(Serializer):
+    def end_object( self, obj ):
+        self._current['id'] = obj._get_pk_val()
+        self.objects.append( self._current )
