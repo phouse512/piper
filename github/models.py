@@ -2,7 +2,6 @@ from django.db import models
 
 from users.models import User
 
-# Create your models here.
 
 class GithubIntegration(models.Model):
 	id = models.AutoField(primary_key=True)

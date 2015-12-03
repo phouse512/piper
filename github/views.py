@@ -36,5 +36,13 @@ def connect(request):
 		github_username=response.json()['login'],
 		oauth_token=access_token,
 		oauth_is_valid=True
-	)
+	).save()
+
+	response = {
+		'integrationId': integration.id,
+		'githubName': integration.github_username
+	}
+
+	return HttpResponse(json.dumps(response), content_type="application/json")
+
 
