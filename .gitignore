@@ -3,3 +3,4 @@ db.sqlite3
 *.idea
 *.pyc
 *.log
+*.DS_Store
