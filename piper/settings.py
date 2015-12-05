@@ -39,7 +39,8 @@ INSTALLED_APPS = (
     'djcelery',
     'users',
     'ingester',
-    'groups'
+    'groups',
+    'heartbeater'
 )
 
 MIDDLEWARE_CLASSES = (
