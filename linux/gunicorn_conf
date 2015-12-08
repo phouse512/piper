@@ -1,0 +1,15 @@
+# put in /etc/init/<service_name>
+
+description "Gunicorn application server for piper"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+setuid root
+setgid www-data
+chdir /home/phil/piper
+
+script
+	exec ../Env/piper/bin/gunicorn --error-logfile /var/log/piper/error.log --log-file /var/log/piper/piper.log --workers 3 --bind unix:/home/phil/piper/piper.sock piper.wsgi:application
+end script

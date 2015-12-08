@@ -1,0 +1,16 @@
+# put in /etc/nginx/sites-available, before creating a simlink to
+#   /etc/nginx/sites-enabled and then restarting nginx
+server {
+    listen 80;
+    server_name piper.phizzle.space;
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location /static/ {
+        root /home/phil/piper;
+    }
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/phil/piper/piper.sock;
+    }
+}
