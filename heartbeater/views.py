@@ -5,6 +5,7 @@ import os
 
 from django.http import HttpResponse
 
+
 # basic heartbeater request
 def index(request):
 	repo = git.Repo(os.getcwd())

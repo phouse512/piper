@@ -56,3 +56,5 @@ def connect(request):
 	return HttpResponse(json.dumps(response), content_type="application/json")
 
 
+def test(request):
+	return "yo"
