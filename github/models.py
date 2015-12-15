@@ -11,3 +11,6 @@ class GithubIntegration(models.Model):
 	oauth_token = models.CharField(max_length=256)
 	expires_at = models.DateTimeField()
 	oauth_is_valid = models.BooleanField(default=False)
+
+	class Meta:
+		db_table = 'github_integrations'

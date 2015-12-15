@@ -40,7 +40,8 @@ INSTALLED_APPS = (
     'users',
     'ingester',
     'groups',
-    'heartbeater'
+    'heartbeater',
+    'github'
 )
 
 MIDDLEWARE_CLASSES = (
