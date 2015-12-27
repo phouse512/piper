@@ -14,3 +14,22 @@ class GithubIntegration(models.Model):
 
 	class Meta:
 		db_table = 'github_integrations'
+
+
+class CommitLog(models.Model):
+	id = models.AutoField(primary_key=True)
+	github_id = models.IntegerField()
+	time = models.DateTimeField()
+	additions = models.IntegerField()
+	deletions = models.IntegerField()
+
+
+class FileModificationLog(models.Model):
+	id = models.AutoField(primary_key=True)
+	commit = models.ForeignKey(CommitLog)
+	status = models.CharField(max_length=50)
+	additions = models.IntegerField()
+	deletions = models.IntegerField()
+	file_name = models.CharField(max_length=200)
+	file_extension = models.CharField(max_length=20)
+
