@@ -24,7 +24,7 @@ def github_commit_job():
     github_accounts = GithubIntegration.objects.all()
 
     for account in github_accounts:
-
+        print account
         # store commits
 
 
