@@ -1,8 +1,16 @@
 import datetime
 import json
 import requests
+import os
+import sys
 
+# os.environ['DJANGO_SETTINGS_MODULE'] = sys.path + 'piper.settings'
+
+# from django.db.models.loading import get_models
+# loaded_models = get_models()
+#
 from github.models import GithubIntegration
+from ingester.task import Job
 
 GITHUB_URL = "https://api.github.com"
 GET_EVENTS_URL = "/users/%s/events"
@@ -11,70 +19,79 @@ GET_REPO_COMMITS_URL = "/repos/%s/commits"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
 ### COMMENT THIS OUT
-user = {
-    'id': 1,
-    'access_token': '',
-    'username': 'phouse512',
-}
+# user = {
+#     'id': 1,
+#     'access_token': '',
+#     'username': 'phouse512',
+# }
 
 
-def github_commit_job():
-    current_time = datetime.datetime.now()
+class GithubCodeActivityJob(Job):
 
-    github_accounts = GithubIntegration.objects.all()
+    def __init__(self, time):
+        self.time = time
 
-    for account in github_accounts:
-        print account
-        # store commits
+    def run(self):
+        self.github_commit_job()
+
+    def github_commit_job(self):
+        current_time = datetime.datetime.now()
+
+        # github_accounts = GithubIntegration.objects.all()
+
+        # for account in github_accounts:
+        #     print account
+            # store commits
 
 
-def get_single_history(user, access_token, username):
+    def get_single_history(self, user):
+        user_repos = self.get_all_repos(user)
 
-    request_url = GITHUB_URL + GET_EVENTS_URL % username
+        commits = []
+        for repo in user_repos:
+            temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'])
 
-    r = requests.get(request_url, auth=(username, access_token))
+            commits.extend(temp_commits)
 
-    print json.dumps(r.json())
+        print commits
+
+        # print [commit['sha'] for commit in commits]
 
 
-def get_all_repos(user):
+    def get_all_repos(self, user):
 
-    request_url = GITHUB_URL + GET_USER_REPOS_URL % user['username']
+        request_url = GITHUB_URL + GET_USER_REPOS_URL % user['username']
 
-    r = requests.get(request_url, auth=(user['username'], user['access_token']), params={'type': 'all' })
+        r = requests.get(request_url, auth=(user['username'], user['access_token']), params={'type': 'all' })
 
-    user_repos = []
-    for repo in r.json():
-        temp_repo = {
-            'id': repo['id'],
-            'full_name': repo['full_name']
+        user_repos = []
+        for repo in r.json():
+            temp_repo = {
+                'id': repo['id'],
+                'full_name': repo['full_name']
+            }
+            user_repos.append(temp_repo)
+
+        return user_repos
+        # print json.dumps(user_repos)
+        # print json.dumps(r.json())
+
+    def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=2):
+        current_time = datetime.datetime.now()
+        since = current_time - datetime.timedelta(days=time_delta)
+        params = {
+            'author': user['username'],
+            'until': current_time.isoformat(),
+            'since': since.isoformat()
         }
-        user_repos.append(temp_repo)
 
-    print json.dumps(user_repos)
-    # print json.dumps(r.json())
+        request_url = GITHUB_URL + GET_REPO_COMMITS_URL % repo_full_name
+        r = requests.get(request_url, auth=(user['username'], user['access_token']), params=params)
 
+        return r.json()
 
-def get_commits_for_repo_and_user(user, repo_full_name, user_commits, time_delta=1):
-    current_time = datetime.datetime.now()
-    since = current_time - datetime.timedelta(days=time_delta)
-    params = {
-        'author': user['username'],
-        'until': current_time.isoformat(),
-        'since': since.isoformat()
-    }
+    def get_commit_from_sha(user, repo_full_name, sha):
+        request_url = GITHUB_URL + GET_COMMIT_FROM_SHA % (repo_full_name, sha)
+        r = requests.get(request_url, auth=(user['username'], user['access_token']))
 
-    request_url = GITHUB_URL + GET_REPO_COMMITS_URL % repo_full_name
-    r = requests.get(request_url, auth=(user['username'], user['access_token']), params=params)
-
-    print json.dumps(r.json())
-
-def get_commit_from_sha(user, repo_full_name, sha):
-    request_url = GITHUB_URL + GET_COMMIT_FROM_SHA % (repo_full_name, sha)
-    r = requests.get(request_url, auth=(user['username'], user['access_token']))
-
-    print json.dumps(r.json())
-
-# get_all_repos(user)
-# get_commits_for_repo_and_user(user, 'phouse512/piper', [], 2)
-get_commit_from_sha(user, 'phouse512', 'sha')
+        print json.dumps(r.json())

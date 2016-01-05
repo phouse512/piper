@@ -17,6 +17,7 @@ import secrets
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 CRON_JOB_KEY = secrets.SET_CRON_JOB_SECRET
+GITHUB_TEST_KEY = secrets.GITHUB_TEST_KEY
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -43,7 +44,8 @@ INSTALLED_APPS = (
     'ingester',
     'groups',
     'heartbeater',
-    'github'
+    'github',
+    'jawbone',
 )
 
 MIDDLEWARE_CLASSES = (
