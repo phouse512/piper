@@ -20,8 +20,12 @@ class CommitLog(models.Model):
     id = models.AutoField(primary_key=True)
     github_id = models.IntegerField()
     time = models.DateTimeField()
+    sha = models.CharField(max_length=200)
     additions = models.IntegerField()
     deletions = models.IntegerField()
+
+    class Meta:
+        db_table = 'commit_log'
 
 
 class FileModificationLog(models.Model):
@@ -33,3 +37,5 @@ class FileModificationLog(models.Model):
     file_name = models.CharField(max_length=200)
     file_extension = models.CharField(max_length=20)
 
+    class Meta:
+        db_table = 'file_modification_log'
