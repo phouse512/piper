@@ -34,6 +34,7 @@ class GithubCodeActivityJob(Job):
     def run(self):
         self.github_commit_job()
 
+    @staticmethod
     def github_commit_job(self):
         current_time = datetime.datetime.now()
 
@@ -45,12 +46,15 @@ class GithubCodeActivityJob(Job):
 
 
     def get_single_history(self, user):
+        print user
         user_repos = self.get_all_repos(user)
 
+        print len(user_repos)
         commits = []
         for repo in user_repos:
             temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'])
-
+            print repo['full_name']
+            print temp_commits
             commits.extend(temp_commits)
 
         print commits
@@ -75,6 +79,7 @@ class GithubCodeActivityJob(Job):
         return user_repos
         # print json.dumps(user_repos)
         # print json.dumps(r.json())
+
 
     def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=2):
         current_time = datetime.datetime.now()
