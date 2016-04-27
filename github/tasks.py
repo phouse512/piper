@@ -35,7 +35,7 @@ class GithubCodeActivityJob(Job):
         self.github_commit_job()
 
     @staticmethod
-    def github_commit_job(self):
+    def github_commit_job():
         current_time = datetime.datetime.now()
 
         # github_accounts = GithubIntegration.objects.all()
@@ -43,7 +43,6 @@ class GithubCodeActivityJob(Job):
         # for account in github_accounts:
         #     print account
             # store commits
-
 
     def get_single_history(self, user):
         # print user
@@ -67,9 +66,11 @@ class GithubCodeActivityJob(Job):
                 stats.append(self.get_commit_from_sha(user, commit['full_repo'], commit['sha']))
             except Exception as e:
                 yoza = 1
-                print "found exception %s, skipping" % str(e)
+                print "found exception %s, skipping commit %s" % (str(e), str(commit))
 
-        print json.dumps(stats)
+        print "number of commits: %d" % len(stats)
+        self.save_single_user_data(stats)
+
         # print len(stats)
 
     def get_all_repos(self, user, page=1):
@@ -96,7 +97,6 @@ class GithubCodeActivityJob(Job):
         # print json.dumps(r.json())
 
     def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=2):
-        print "getting commits for %s" % repo_full_name
         current_time = datetime.datetime.now()
         since = current_time - datetime.timedelta(days=time_delta)
         params = {
@@ -120,3 +120,7 @@ class GithubCodeActivityJob(Job):
         r = requests.get(request_url, auth=(user['username'], user['access_token']))
 
         return r.json()
+
+    def save_single_user_data(self, all_commits):
+        self.run()
+        return all_commits
