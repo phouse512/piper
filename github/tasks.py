@@ -14,7 +14,7 @@ from ingester.task import Job
 
 GITHUB_URL = "https://api.github.com"
 GET_EVENTS_URL = "/users/%s/events"
-GET_USER_REPOS_URL = "/users/%s/repos?per_page=100"
+GET_USER_REPOS_URL = "/user/repos?page=%s&per_page=100"
 GET_REPO_COMMITS_URL = "/repos/%s/commits?per_page=100"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
@@ -49,7 +49,10 @@ class GithubCodeActivityJob(Job):
         # print user
         user_repos = self.get_all_repos(user)
 
-        # print len(user_repos)
+        for test in user_repos:
+            print test
+
+        print len(user_repos)
         commits = []
         for repo in user_repos:
             temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'])
@@ -63,16 +66,18 @@ class GithubCodeActivityJob(Job):
                 # print commit['sha']
                 stats.append(self.get_commit_from_sha(user, commit['full_repo'], commit['sha']))
             except Exception as e:
+                yoza = 1
                 print "found exception %s, skipping" % str(e)
 
         print json.dumps(stats)
+        # print len(stats)
 
+    def get_all_repos(self, user, page=1):
 
-    def get_all_repos(self, user):
+        request_url = GITHUB_URL + GET_USER_REPOS_URL % page
 
-        request_url = GITHUB_URL + GET_USER_REPOS_URL % user['username']
-
-        r = requests.get(request_url, auth=(user['username'], user['access_token']), params={'type': 'all' })
+        r = requests.get(request_url, auth=(user['username'], user['access_token']),
+                         params={'affiliation': 'owner,collaborator'})
 
         user_repos = []
         for repo in r.json():
@@ -82,11 +87,16 @@ class GithubCodeActivityJob(Job):
             }
             user_repos.append(temp_repo)
 
+        if len(user_repos) >= 100:
+            page += 1
+            return user_repos.extend(self.get_all_repos(user, page))
+
         return user_repos
         # print json.dumps(user_repos)
         # print json.dumps(r.json())
 
     def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=2):
+        print "getting commits for %s" % repo_full_name
         current_time = datetime.datetime.now()
         since = current_time - datetime.timedelta(days=time_delta)
         params = {
