@@ -18,9 +18,9 @@ class GithubIntegration(models.Model):
 
 class CommitLog(models.Model):
     id = models.AutoField(primary_key=True)
-    github_id = models.IntegerField()  # github id of the commit
+    github_id = models.IntegerField()  # github id of the user
     time = models.DateTimeField()
-    sha = models.CharField(max_length=200)
+    sha = models.CharField(max_length=200)  # unique id of commit
     additions = models.IntegerField()
     deletions = models.IntegerField()
 

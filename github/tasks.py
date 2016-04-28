@@ -1,14 +1,14 @@
 import datetime
 import json
 import requests
-import os
-import sys
 
 # os.environ['DJANGO_SETTINGS_MODULE'] = sys.path + 'piper.settings'
 
 # from django.db.models.loading import get_models
 # loaded_models = get_models()
 #
+from github.models import CommitLog
+from github.models import FileModificationLog
 from github.models import GithubIntegration
 from ingester.task import Job
 
@@ -122,5 +122,33 @@ class GithubCodeActivityJob(Job):
         return r.json()
 
     def save_single_user_data(self, all_commits):
-        self.run()
+        if len(all_commits) < 1:
+            return
+
+        for commit in all_commits:
+            try:
+                self.save_single_commit(commit)
+            except ValueError as e:
+                # logging should go here for commits changing json
+                print "yo json issues"
+
         return all_commits
+
+    def save_single_commit(self, commit):
+        new_commit = CommitLog(
+            github_id=commit['author']['id'],
+            time=commit['commit']['author']['date'],
+            sha=commit['sha'],
+            additions=commit['stats']['additions'],
+            deletions=commit['stats']['deletions']
+        ).save()
+
+        for file in commit['files']:
+            new_file = FileModificationLog(
+                commit=new_commit,
+                status=file['status'],
+                additions=file['additions'],
+                deletions=file['deletions'],
+                file_name=file['filename'],
+                file_extension=file['filename'].split(".")[-1]
+            ).save()
