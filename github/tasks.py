@@ -131,17 +131,25 @@ class GithubCodeActivityJob(Job):
             except ValueError as e:
                 # logging should go here for commits changing json
                 print "yo json issues"
+                print e
 
         return all_commits
 
     def save_single_commit(self, commit):
-        new_commit = CommitLog(
+        sha = commit['sha']
+
+        existing_commit = CommitLog.objects.filter(sha=sha).first()
+        if existing_commit:
+            old_file_logs = FileModificationLog.objects.filter(commit_id=existing_commit.id).delete()
+            existing_commit.delete()
+
+        new_commit = CommitLog.objects.create(
             github_id=commit['author']['id'],
             time=commit['commit']['author']['date'],
             sha=commit['sha'],
             additions=commit['stats']['additions'],
             deletions=commit['stats']['deletions']
-        ).save()
+        )
 
         for file in commit['files']:
             new_file = FileModificationLog(
