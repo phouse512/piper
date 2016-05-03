@@ -1,7 +1,7 @@
-from django.test import TestCase
+from django.test import SimpleTestCase
 
 
-class GithubTaskTests(TestCase):
+class GithubTaskTests(SimpleTestCase):
 
     def test_basic_test(self):
         test = 4+1
