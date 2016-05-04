@@ -12,12 +12,18 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-import secrets
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-CRON_JOB_KEY = secrets.SET_CRON_JOB_SECRET
-GITHUB_TEST_KEY = secrets.GITHUB_TEST_KEY
+# try importing secrets - if doesn't work, just set to defaults
+try:
+    import secrets
+    CRON_JOB_KEY = secrets.SET_CRON_JOB_SECRET
+    GITHUB_TEST_KEY = secrets.GITHUB_TEST_KEY
+except ImportError as e:
+    print "Couldn't import secrets file, setting to defaults."
+    CRON_JOB_KEY = "CRON"
+    GITHUB_TEST_KEY = "GITHUB"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
