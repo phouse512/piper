@@ -18,13 +18,6 @@ GET_USER_REPOS_URL = "/user/repos?page=%s&per_page=100"
 GET_REPO_COMMITS_URL = "/repos/%s/commits?per_page=100"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
-### COMMENT THIS OUT
-# user = {
-#     'id': 1,
-#     'access_token': '',
-#     'username': 'phouse512',
-# }
-
 
 class GithubCodeActivityJob(Job):
 
@@ -34,15 +27,20 @@ class GithubCodeActivityJob(Job):
     def run(self):
         self.github_commit_job()
 
-    @staticmethod
-    def github_commit_job():
-        current_time = datetime.datetime.now()
+    def github_commit_job(self):
+        github_accounts = GithubIntegration.objects.all()
 
-        # github_accounts = GithubIntegration.objects.all()
-
-        # for account in github_accounts:
-        #     print account
-            # store commits
+        for account in github_accounts:
+            print account
+            account_dict = {
+                'id': account.id,
+                'access_token': account.oauth_token,
+                'username': account.github_username
+            }
+            try:
+                self.get_single_history(account_dict)
+            except Exception as e:
+                print e
 
     def get_single_history(self, user):
         # print user
@@ -96,7 +94,7 @@ class GithubCodeActivityJob(Job):
         # print json.dumps(user_repos)
         # print json.dumps(r.json())
 
-    def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=2):
+    def get_commits_for_repo_and_user(self, user, repo_full_name, time_delta=1):
         current_time = datetime.datetime.now()
         since = current_time - datetime.timedelta(days=time_delta)
         params = {
