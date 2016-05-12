@@ -64,5 +64,10 @@ def test(request):
 
 def github_job(request):
     job = GithubCodeActivityJob(datetime.now())
+    success = job.run()
 
+    response_dict = {
+        'success_ratio': success
+    }
 
+    return HttpResponse(json.dumps(response_dict), content_type="application/json")

@@ -25,10 +25,11 @@ class GithubCodeActivityJob(Job):
         self.time = time
 
     def run(self):
-        self.github_commit_job()
+        return self.github_commit_job()
 
     def github_commit_job(self):
         github_accounts = GithubIntegration.objects.all()
+        instances = 0
 
         for account in github_accounts:
             print account
@@ -39,8 +40,11 @@ class GithubCodeActivityJob(Job):
             }
             try:
                 self.get_single_history(account_dict)
+                instances += 1
             except Exception as e:
                 print e
+
+        return float(instances/len(github_accounts))
 
     def get_single_history(self, user):
         # print user
@@ -64,7 +68,7 @@ class GithubCodeActivityJob(Job):
                 stats.append(self.get_commit_from_sha(user, commit['full_repo'], commit['sha']))
             except Exception as e:
                 yoza = 1
-                print "found exception %s, skipping commit %s" % (str(e), str(commit))
+                print "found exception %s, skipping commit %s" % (str(e), commit)
 
         print "number of commits: %d" % len(stats)
         self.save_single_user_data(stats)
