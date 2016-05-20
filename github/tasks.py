@@ -15,6 +15,7 @@ from ingester.task import Job
 GITHUB_URL = "https://api.github.com"
 GET_EVENTS_URL = "/users/%s/events"
 GET_USER_REPOS_URL = "/user/repos?page=%s&per_page=100"
+GET_ALL_USER_REPOS_URL = "/users/%s/repos?page=%s&per_page=100"
 GET_REPO_COMMITS_URL = "/repos/%s/commits?per_page=100"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
@@ -57,7 +58,7 @@ class GithubCodeActivityJob(Job):
         commits = []
         for repo in user_repos:
             temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'])
-            # print repo['full_name']
+            print repo['full_name']
             commits.extend(temp_commits)
 
         # print json.dumps(commits)
@@ -81,7 +82,8 @@ class GithubCodeActivityJob(Job):
 
         r = requests.get(request_url, auth=(user['username'], user['access_token']),
                          params={'affiliation': 'owner,collaborator'})
-
+        # TODO get all repos from organizations:
+        # https://developer.github.com/v3/orgs/#list-your-organizations
         user_repos = []
         for repo in r.json():
             temp_repo = {
