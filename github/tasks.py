@@ -31,6 +31,7 @@ class GithubCodeActivityJob(Job):
     def github_commit_job(self):
         github_accounts = GithubIntegration.objects.all()
         instances = 0
+        commits = 0
 
         for account in github_accounts:
             print account
@@ -40,12 +41,16 @@ class GithubCodeActivityJob(Job):
                 'username': account.github_username
             }
             try:
-                self.get_single_history(account_dict)
+                commits += self.get_single_history(account_dict)
                 instances += 1
             except Exception as e:
                 print e
 
-        return float(instances/len(github_accounts))
+        return {
+            'commits_saved': commits,
+            'accounts_checked': instances,
+            'account_success_ratio': float(instances/len(github_accounts))
+        }
 
     def get_single_history(self, user):
         # print user
@@ -73,6 +78,8 @@ class GithubCodeActivityJob(Job):
 
         print "number of commits: %d" % len(stats)
         self.save_single_user_data(stats)
+
+        return len(stats)
 
         # print len(stats)
 
