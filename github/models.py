@@ -1,3 +1,4 @@
+from django.core.serializers.python import Serializer
 from django.db import models
 
 from users.models import User
@@ -26,6 +27,13 @@ class CommitLog(models.Model):
 
     class Meta:
         db_table = 'commit_log'
+
+
+class CommitLogSerializer(Serializer):
+    def get_dump_object(self, obj):
+        self._current['timestamp'] = str(obj.time)
+        self._current.pop('time')
+        return self._current
 
 
 class FileModificationLog(models.Model):

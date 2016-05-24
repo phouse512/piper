@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from github.models import GithubIntegration
 from github.models import CommitLog
+from github.models import CommitLogSerializer
 from github.models import FileModificationLog
 from github.tasks import GithubCodeActivityJob
 from integrations.models import Integrations
@@ -67,8 +68,8 @@ def commit_tail(request, username):
     account = get_object_or_404(GithubIntegration, github_username=username)
 
     commits = CommitLog.objects.filter(github_id=account.github_id)
-
-    return HttpResponse(json.dumps(commits), content_type="application/json")
+    serialized_commits = CommitLogSerializer().serialize(commits)
+    return HttpResponse(json.dumps(serialized_commits), content_type="application/json")
 
 
 def github_job(request):
