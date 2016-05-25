@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timedelta
 import json
 import requests
 
@@ -62,12 +63,13 @@ def connect(request):
 
 
 def commit_tail(request, username):
-    days = request.GET.get("days", 1)
+    days = int(request.GET.get("days", 1))
     extended = bool(request.GET.get("extended", False))
 
+    from_date = datetime.utcnow() - timedelta(days=days)
     account = get_object_or_404(GithubIntegration, github_username=username)
 
-    commits = CommitLog.objects.filter(github_id=account.github_id)
+    commits = CommitLog.objects.filter(github_id=account.github_id, time__gte=from_date)
     serialized_commits = CommitLogSerializer().serialize(commits)
     return HttpResponse(json.dumps(serialized_commits), content_type="application/json")
 
