@@ -24,6 +24,7 @@ class CommitLog(models.Model):
     sha = models.CharField(max_length=200)  # unique id of commit
     additions = models.IntegerField()
     deletions = models.IntegerField()
+    repo_name = models.CharField(max_length=200, default="")
 
     class Meta:
         db_table = 'commit_log'
