@@ -71,7 +71,9 @@ class GithubCodeActivityJob(Job):
         for commit in commits:
             try:
                 # print commit['sha']
-                stats.append(self.get_commit_from_sha(user, commit['full_repo'], commit['sha']))
+                test_commit = self.get_commit_from_sha(user, commit['full_repo'], commit['sha'])
+                test_commit['_phil_test_repo_name'] = commit['full_repo']
+                stats.append(test_commit)
             except Exception as e:
                 yoza = 1
                 print "found exception %s, skipping commit %s" % (str(e), commit)
@@ -159,7 +161,8 @@ class GithubCodeActivityJob(Job):
             time=commit['commit']['author']['date'],
             sha=commit['sha'],
             additions=commit['stats']['additions'],
-            deletions=commit['stats']['deletions']
+            deletions=commit['stats']['deletions'],
+            repo_name=commit['_phil_test_repo_name']
         )
 
         for file in commit['files']:
