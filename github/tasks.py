@@ -22,8 +22,9 @@ GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
 class GithubCodeActivityJob(Job):
 
-    def __init__(self, time):
+    def __init__(self, time, day_delta):
         self.time = time
+        self.day_delta = day_delta
 
     def run(self):
         return self.github_commit_job()
@@ -62,7 +63,7 @@ class GithubCodeActivityJob(Job):
         print len(user_repos)
         commits = []
         for repo in user_repos:
-            temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'])
+            temp_commits = self.get_commits_for_repo_and_user(user, repo['full_name'], self.day_delta)
             print repo['full_name']
             commits.extend(temp_commits)
 
@@ -90,7 +91,7 @@ class GithubCodeActivityJob(Job):
         request_url = GITHUB_URL + GET_USER_REPOS_URL % page
 
         r = requests.get(request_url, auth=(user['username'], user['access_token']),
-                         params={'affiliation': 'owner,collaborator'})
+                         params={'affiliation': 'owner,collaborator,organization_member'})
         # TODO get all repos from organizations:
         # https://developer.github.com/v3/orgs/#list-your-organizations
         user_repos = []
@@ -103,7 +104,7 @@ class GithubCodeActivityJob(Job):
 
         if len(user_repos) >= 100:
             page += 1
-            return user_repos.extend(self.get_all_repos(user, page))
+            return user_repos + self.get_all_repos(user, page)
 
         return user_repos
         # print json.dumps(user_repos)
