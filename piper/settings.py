@@ -52,6 +52,7 @@ INSTALLED_APPS = (
     'heartbeater',
     'github',
     'jawbone',
+    'pathfinder'
 )
 
 MIDDLEWARE_CLASSES = (
