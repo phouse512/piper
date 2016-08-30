@@ -18,7 +18,7 @@ class Command(BaseCommand):
             'username': 'phouse512',
         }
 
-        github_job = GithubCodeActivityJob(datetime.datetime.now())
+        github_job = GithubCodeActivityJob(datetime.datetime.now(), 3)
         # github_job.get_commits_for_repo_and_user(user, 'phouse512/piper', 10)
 
         github_job.get_single_history(user)

@@ -12,8 +12,8 @@ class Node(models.Model):
 
 class Edge(models.Model):
     id = models.AutoField(primary_key=True)
-    source = models.ForeignKey(Node)
-    dest = models.ForeignKey(Node)
+    source = models.ForeignKey(Node, related_name='source_edge')
+    dest = models.ForeignKey(Node, related_name='dest_edge')
     weight = models.IntegerField(default=1)
 
 

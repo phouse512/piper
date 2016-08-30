@@ -75,7 +75,7 @@ def commit_tail(request, username):
 
 
 def github_job(request):
-    days = int(request.GET.get("days", 1))
+    days = int(request.GET.get("days", 2))
 
     job = GithubCodeActivityJob(datetime.now(), days)
     success = job.run()
