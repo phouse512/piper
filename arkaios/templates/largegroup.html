@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/tracking.css') }}" />
-        <title>{% block title %}Focus Attendance{% endblock %}</title>
-        <script src="{{ url_for('static', filename='js/jquery-1.11.1.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/jquery.updatelist.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/tracking.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/constants.js') }}"></script>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'arkaios/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'arkaios/css/tracking.css' %}" />
+        <title>Focus Attendance</title>
+        <script src="{% static 'arkaios/js/jquery-1.11.1.min.js' %}"></script>
+        <script src="{% static 'arkaios/js/jquery.updatelist.js' %}"></script>
+        <script src="{% static 'arkaios/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'arkaios/js/tracking.js' %}"></script>
+        <script src="{% static 'arkaios/js/constants.js' %}"></script>
         <script type=text/javascript>
-          $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+          $SCRIPT_ROOT = 'localhost:8000';
           $(document).ready(function(){
-            loadPage();
+                  //loadPage();
+                  console.log("STILL ALIVE");
           });
         </script>
     </head>
@@ -24,7 +26,7 @@
         </div>
         <div class="row">
             <div id="confirmation" class="col-lg-3 col-lg-offset-2 confirmation-image" style="display: none;">
-                <img src="{{ url_for('static', filename='img/checkmark.png') }}">
+                <img src="{% static 'arkaios/img/checkmark.png' %}">
             </div>
             <div id="input-form" class="col-lg-3 col-lg-offset-2">
                 <input type="text" class="form-control" id="firstName" placeholder="first name..">
@@ -48,9 +50,9 @@
             </div>
         </div>
         <div class="alert alert-info" id="trackingFooter">
-            You currently are tracking for event {{ quarter }}; return to the mothership <a href="{{ url_for('focus_select') }}">now</a>
-            <p id="quarter" style="display: none;">{{ quarter }}</p>
-            <p id="week" style="display: none;">{{ week }}</p>
+            You currently are tracking for event ; return to the mothership <a href="psyche">now</a>
+            <p id="quarter" style="display: none;">HI</p>
+            <p id="week" style="display: none;">PEACE</p>
         </div>
     </body>
 </html>

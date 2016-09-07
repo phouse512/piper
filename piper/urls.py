@@ -16,10 +16,13 @@ Including another URLconf
 from django.conf.urls import include
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^users/', include('users.urls')),
     url(r'^github/', include('github.urls')),
-    url(r'^status/', include('heartbeater.urls'))
+    url(r'^status/', include('heartbeater.urls')),
+    url(r'^arkaios/', include('arkaios.urls'))
 ]
+
