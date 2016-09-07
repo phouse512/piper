@@ -60,9 +60,10 @@ function parseTrackingStatus(data){
 }
 
 function searchUsers(){
-	$.getJSON($SCRIPT_ROOT + '/focus/_search', {
-		firstName: $.trim($('#firstName').val().toLowerCase()),
-		lastName: $.trim($('#lastName').val().toLowerCase()),
+    var group_hash = $.trim($("#group_hash").html().toLowerCase());
+	$.getJSON($SCRIPT_ROOT + '/arkaios/' + group_hash + '/_search/', {
+		first_name: $.trim($('#firstName').val().toLowerCase()),
+		last_name: $.trim($('#lastName').val().toLowerCase()),
 		email: $.trim($("#email").val().toLowerCase()),
 		//dorm: $.trim($("#dorm").val()),
 		year: $('select').val()
@@ -73,7 +74,7 @@ function searchUsers(){
 
 function updateSuggestions(data){
 	for(var i=0; i<data.results.length; i++){
-		data.results[i] = JSON.parse(data.results[i]);
+		data.results[i] = data.results[i];
 	}
 	$(".list-group").updateList('update', data.results);
 }
