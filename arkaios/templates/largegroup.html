@@ -11,9 +11,9 @@
         <script src="{% static 'arkaios/js/tracking.js' %}"></script>
         <script src="{% static 'arkaios/js/constants.js' %}"></script>
         <script type=text/javascript>
-          $SCRIPT_ROOT = 'localhost:8000';
+            $SCRIPT_ROOT = 'http://{{ url_root }}';
           $(document).ready(function(){
-                  //loadPage();
+                  loadPage();
                   console.log("STILL ALIVE");
           });
         </script>
