@@ -1,0 +1,54 @@
+import json
+
+from django.test import SimpleTestCase
+from django.test.client import RequestFactory
+from mock import MagicMock
+from mock import patch
+
+from arkaios.views import save
+
+
+class SaveAttendanceTests(SimpleTestCase):
+
+    def setUp(self):
+        self.rf = RequestFactory()
+
+    def test_save_no_params(self):
+        group_hash = "test"
+        event_id = 1
+        request = self.rf.get('/arkaios/test/track/1/save/')
+
+        response = save(request, group_hash, event_id)
+        json_response = json.loads(response.content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("error", json_response['status'])
+        self.assertEqual(["firstName", "lastName", "email", "year"],
+                         json_response['error'])
+
+    def test_save_some_params(self):
+        group_hash = "test"
+        event_id = 1
+        request = self.rf.get('/arkaios/test/track/1/save/?firstName=phil&lastName=house')
+
+        response = save(request, group_hash, event_id)
+        json_response = json.loads(response.content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("error", json_response['status'])
+        self.assertEqual(["email", "year"], json_response['error'])
+
+    @patch('arkaios.views.Event')
+    def test_invalid_event_invalid_params(self, event_patch):
+        group_hash = "test"
+        event_id = 1
+        request = self.rf.get('/arkaios/test/track/1/save/?firstName=phil&lastName=house&email=phil&year=senior')
+
+        event_patch.objects.filter.return_value = []
+
+        response = save(request, group_hash, event_id)
+        json_response = json.loads(response.content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("error", json_response['status'])
+        self.assertEqual("invalid", json_response['event'])
