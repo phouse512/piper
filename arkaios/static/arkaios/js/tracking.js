@@ -34,14 +34,13 @@ function resetScreen(){
 
 // Large group tracking - Submit button click
 function submitClick(){
-	$.getJSON($SCRIPT_ROOT + '/focus/_track', {
+    var group_hash = $.trim($("#group_hash").html().toLowerCase());
+    var event_id = $.trim($("#event_id").html().toLowerCase());
+	$.getJSON($SCRIPT_ROOT + '/arkaios/' + group_hash + '/track/' + event_id + '/save/', {
 		firstName: $('#firstName').val().toLowerCase(),
         lastName: $('#lastName').val().toLowerCase(),
         email: $('#email').val().toLowerCase(),
-        dorm: 'don\'t matter',
         year: $('select').val(),
-        quarter: $('#quarter').html(),
-        week: $('#week').html()
 	}, function(data) {
 		parseTrackingStatus(data);
 	});

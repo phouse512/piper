@@ -1,6 +1,7 @@
 import json
 
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 
 from models import Attendee
@@ -9,8 +10,10 @@ from models import EventAttendance
 # Create your views here.
 
 
-def tracking(request, group_hash):
-    context = {'url_root': request.get_host(), 'group_hash': group_hash}
+def tracking(request, group_hash, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    context = {'url_root': request.get_host(), 'group_hash': group_hash,
+               'event_id': event_id, 'event_name': event.name}
     return render(request, 'largegroup.html', context)
 
 
@@ -96,15 +99,20 @@ def save(request, group_hash, event_id):
         results_dict['status'] = 'success'
         return HttpResponse(json.dumps(results_dict))
 
+    attendee = attendee[0]
+    attendance = EventAttendance.objects.filter(attendee=attendee, event=event)
 
+    if attendance:
+        # attendance record already exists, do nothing but return success
+        results_dict['status'] = 'success'
+        return HttpResponse(json.dumps(results_dict))
 
-
-
-    # if user exists
-        # look up attendance for this event
-        # if exists, return success and do nothing
-
-        # if not, add attendance record (not first time)
-            # return success
-
+    # at this point, an attendee exists, an event exists, but no attendance record
+    #   has been created - time to create one!
+    new_attendance = EventAttendance.objects.create(
+        attendee=attendee,
+        event=event,
+        first_time=0
+    )
+    results_dict['status'] = 'success'
     return HttpResponse(json.dumps(results_dict))
