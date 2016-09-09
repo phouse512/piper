@@ -5,6 +5,7 @@ from django.shortcuts import render
 
 from models import Attendee
 from models import Event
+from models import EventAttendance
 # Create your views here.
 
 
@@ -62,7 +63,6 @@ def save(request, group_hash, event_id):
 
         return HttpResponse(json.dumps(results_dict))
 
-
     # make sure that event is valid
     event = Event.objects.filter(id=event_id, on=True)
     if not event:
@@ -72,16 +72,39 @@ def save(request, group_hash, event_id):
         return HttpResponse(json.dumps(results_dict))
     # look up user in database
 
+    event = event[0]
+
+    attendee = Attendee.objects.filter(group_hash=group_hash, email=input_email)
+
+    # if first time
+    if not attendee:
+
+        new_attendee = Attendee.objects.create(
+            group_hash=group_hash,
+            email=input_email,
+            first_name=input_first_name,
+            last_name=input_last_name,
+            year=input_year
+        )
+
+        new_attendance = EventAttendance.objects.create(
+            attendee=new_attendee,
+            event=event,
+            first_time=1
+        )
+
+        results_dict['status'] = 'success'
+        return HttpResponse(json.dumps(results_dict))
+
+
+
+
+
     # if user exists
         # look up attendance for this event
         # if exists, return success and do nothing
 
         # if not, add attendance record (not first time)
             # return success
-
-    # otherwise
-        # create new user
-        # create new attendance record (first time)
-        # return success
 
     return HttpResponse(json.dumps(results_dict))
