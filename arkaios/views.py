@@ -5,9 +5,21 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 
 from models import Attendee
-from models import Event
+from models import Event, EventSerializer
 from models import EventAttendance
+from models import Group
 # Create your views here.
+
+
+def admin_overview(request, group_hash):
+    group = get_object_or_404(Group, group_hash=group_hash)
+
+    events = Event.objects.filter(group_hash=group.group_hash)
+
+    serializable_events = EventSerializer().serialize(events)
+    context = {'name': group.name, 'events': events,
+               'events_json': json.dumps(serializable_events)}
+    return render(request, 'admin.html', context)
 
 
 def tracking(request, group_hash, event_id):

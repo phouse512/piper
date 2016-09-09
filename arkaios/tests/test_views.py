@@ -5,7 +5,25 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 from mock import patch
 
+from arkaios.views import admin_overview
 from arkaios.views import save
+
+
+class AdminTests(SimpleTestCase):
+
+    def setUp(self):
+        self.rf = RequestFactory()
+
+        self.group_hash = "test"
+
+    @patch('arkaios.views.get_object_or_404')
+    def test_existing_group(self, get_object_patch):
+        request = self.rf.get('/arkaios/test/admin/')
+
+        get_object_patch.return_value = MagicMock()
+        response = admin_overview(request, self.group_hash)
+
+        self.assertEqual(200, response.status_code)
 
 
 class SaveAttendanceTests(SimpleTestCase):
