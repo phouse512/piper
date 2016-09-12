@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
+from django.shortcuts import redirect
 
 from models import Attendee
 from models import Event, EventSerializer
@@ -15,13 +16,30 @@ from models import Group
 def admin_overview(request, group_hash):
     group = get_object_or_404(Group, group_hash=group_hash)
 
-    events = Event.objects.filter(group_hash=group.group_hash)
+    events = Event.objects.filter(group_hash=group.group_hash).order_by('date')
 
     serializable_events = EventSerializer().serialize(events)
     context = {'name': group.name, 'events': serializable_events,
                'events_json': json.dumps(serializable_events),
                'group_hash': group_hash}
     return render(request, 'admin.html', context)
+
+
+def create_event(request, group_hash):
+    group = get_object_or_404(Group, group_hash=group_hash)
+
+    input_name = request.GET.get('name', '')
+    if not input_name:
+        return HttpResponseBadRequest()
+
+    new_event = Event.objects.create(
+        name=input_name,
+        group_hash=group_hash,
+    )
+
+    serializable_event = EventSerializer().serialize([new_event])
+
+    return redirect('arkaios.views.admin_overview', group_hash=group_hash)
 
 
 def event_toggle(request, group_hash, event_id):
