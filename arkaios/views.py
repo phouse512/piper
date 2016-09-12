@@ -18,7 +18,7 @@ def admin_overview(request, group_hash):
     events = Event.objects.filter(group_hash=group.group_hash)
 
     serializable_events = EventSerializer().serialize(events)
-    context = {'name': group.name, 'events': events,
+    context = {'name': group.name, 'events': serializable_events,
                'events_json': json.dumps(serializable_events),
                'group_hash': group_hash}
     return render(request, 'admin.html', context)
@@ -45,7 +45,8 @@ def event_toggle(request, group_hash, event_id):
 def tracking(request, group_hash, event_id):
     event = get_object_or_404(Event, id=event_id)
     context = {'url_root': request.get_host(), 'group_hash': group_hash,
-               'event_id': event_id, 'event_name': event.name}
+               'event_id': event_id, 'event_name': event.name,
+               'return_url': 'http://' + request.get_host() + '/arkaios/' + group_hash + '/admin/'}
     return render(request, 'largegroup.html', context)
 
 

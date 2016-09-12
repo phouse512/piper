@@ -2,7 +2,7 @@ import datetime
 
 from django.core.serializers.python import Serializer
 from django.db import models
-
+from django.core.urlresolvers import reverse
 # Create your models here.
 
 
@@ -30,6 +30,12 @@ class EventSerializer(Serializer):
         self._current['event_date'] = str(obj.date)
         self._current.pop('date')
         self._current['id'] = obj.id
+        self._current['url'] = reverse('track',
+                                       kwargs={
+                                           'group_hash': self._current['group_hash'],
+                                           'event_id': self._current['id']}
+                                       )
+        print self._current['url']
         return self._current
 
 
