@@ -25,7 +25,7 @@ class AdminTests(SimpleTestCase):
         event1 = Event(id=1, name="test", group_hash="wot", on=True)
 
         get_object_patch.return_value = MagicMock()
-        event_patch.objects.filter.return_value = [event1]
+        event_patch.objects.filter.order_by.return_value = [event1]
 
         response = admin_overview(request, self.group_hash)
 
