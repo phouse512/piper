@@ -17,6 +17,24 @@
                     var event_id = "#event_" + test[i].id + " > input";
                     $(event_id).bootstrapSwitch('state', test[i].on);
                 }
+
+                $('input[name="checkbox"]').on('switchChange.bootstrapSwitch', function(event, state) {
+                    console.log($(this));
+                    console.log(state);
+                    console.log($(this).attr("id"));
+
+                    var raw_event_str = $(this).attr("id");
+                    var event_id = raw_event_str.substr(7, raw_event_str.length);
+                    var group_hash = $.trim($("#group_hash").html().toLowerCase());
+                    console.log(event_id);
+
+                    $.getJSON('/arkaios/' + group_hash + '/track/' + event_id + '/toggle/', {
+                        on: state
+                    }, function(data) {
+                        console.log(data);
+                        //$(this).parent().bootstrapSwitch('state', data.event_status);
+                    });
+                });
             });
         </script>
     </head>
@@ -43,7 +61,7 @@
                         <ul class="list-group">
                         {% for event in events %}
                             <li id="event_{{ event.id }}" class="list-group-item event">
-                                <input type="checkbox" name="checkbox" checked>
+                                <input id="switch_{{ event.id }}" type="checkbox" name="checkbox" checked>
                                 <span class="badge">31</span>
                                 {{ event.name }}
                             </li>
@@ -51,6 +69,7 @@
                         </ul>
                     </div>
                 </div>
+                <p id="group_hash" style="display: none;">{{ group_hash }}</p>
             </div>
         </div>
     </body>

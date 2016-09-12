@@ -1,6 +1,7 @@
 import json
 
 from django.http import HttpResponse
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 
@@ -18,8 +19,27 @@ def admin_overview(request, group_hash):
 
     serializable_events = EventSerializer().serialize(events)
     context = {'name': group.name, 'events': events,
-               'events_json': json.dumps(serializable_events)}
+               'events_json': json.dumps(serializable_events),
+               'group_hash': group_hash}
     return render(request, 'admin.html', context)
+
+
+def event_toggle(request, group_hash, event_id):
+    group = get_object_or_404(Group, group_hash=group_hash)
+    event = get_object_or_404(Event, id=event_id)
+
+    on = request.GET.get('on', 'false').lower()
+    on = True if on == 'true' else False
+
+    event.on = on
+    event.save()
+
+    results_dict = {
+        'event_id': event.id,
+        'event_status': event.on
+    }
+
+    return HttpResponse(json.dumps(results_dict))
 
 
 def tracking(request, group_hash, event_id):
