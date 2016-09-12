@@ -5,6 +5,7 @@ from django.test.client import RequestFactory
 from mock import MagicMock
 from mock import patch
 
+from arkaios.models import Event
 from arkaios.views import admin_overview
 from arkaios.views import save
 
@@ -17,10 +18,15 @@ class AdminTests(SimpleTestCase):
         self.group_hash = "test"
 
     @patch('arkaios.views.get_object_or_404')
-    def test_existing_group(self, get_object_patch):
+    @patch('arkaios.views.Event')
+    def test_existing_group(self, event_patch, get_object_patch):
         request = self.rf.get('/arkaios/test/admin/')
 
+        event1 = Event(id=1, name="test", group_hash="wot", on=True)
+
         get_object_patch.return_value = MagicMock()
+        event_patch.objects.filter.return_value = [event1]
+
         response = admin_overview(request, self.group_hash)
 
         self.assertEqual(200, response.status_code)

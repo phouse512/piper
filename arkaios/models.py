@@ -35,7 +35,6 @@ class EventSerializer(Serializer):
                                            'group_hash': self._current['group_hash'],
                                            'event_id': self._current['id']}
                                        )
-        print self._current['url']
         return self._current
 
 
