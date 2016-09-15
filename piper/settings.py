@@ -53,7 +53,8 @@ INSTALLED_APPS = (
     'github',
     'jawbone',
     'pathfinder',
-    'arkaios'
+    'arkaios',
+    'eyesaver'
 )
 
 MIDDLEWARE_CLASSES = (

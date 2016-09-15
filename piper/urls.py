@@ -23,6 +23,7 @@ urlpatterns = [
     url(r'^users/', include('users.urls')),
     url(r'^github/', include('github.urls')),
     url(r'^status/', include('heartbeater.urls')),
-    url(r'^arkaios/', include('arkaios.urls'))
+    url(r'^arkaios/', include('arkaios.urls')),
+    url(r'^eyesaver/', include('eyesaver.urls'))
 ]
 

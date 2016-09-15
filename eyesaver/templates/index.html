@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'arkaios/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'css/eyesaver.css' %}" />
+        <title>Focus Attendance</title>
+        <script src="{% static 'arkaios/js/jquery-1.11.1.min.js' %}"></script>
+        <script src="{% static 'arkaios/js/bootstrap.min.js' %}"></script>
+        <script type=text/javascript>
+          function countdown() {
+            currentMinute = parseInt($("#minute").html());
+            currentSeconds = parseInt($("#seconds").html());
+
+            console.log(currentMinute);
+            console.log(currentSeconds);
+          }
+
+          function setCountdown(minute, seconds) {
+            $("#minute").html(minute);
+
+            if (seconds < 10) {
+              secondsString = "0" + seconds.toString();
+            } else {
+              secondsString = seconds.toString();
+            }
+
+            $("#seconds").html(secondsString);
+          }
+
+          function startTimer(startMinute, startSeconds) {
+            setCountdown(startMinute, startSeconds);
+
+            return setInterval(1000, function() {
+              console.log('syche');
+            });
+          }
+
+          $(document).ready(function(){
+            setCountdown(20, 05);
+
+            $("#start").on('click', function() {
+              interval = startTimer(15, 0);
+            });
+          });
+        </script>
+    </head>
+    <body class="large-group-tracking">
+        <div class="row">
+            <div class="center-block-eye col-lg-2 col-md-2 col-md-offset-5 col-lg-offset-5 col-sm-4 col-sm-offset-4">
+                <h1 class="text-center">the eyesaver</h1>
+                <p class="counter text-center">
+                    <span id="minute">0</span>
+                    :
+                    <span id="seconds">00</span>
+                </p>
+                <div class="row">
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <button id="start" class="btn btn-block btn-primary">
+                            start
+                        </button>
+                    </div>
+                    <div class="col-lg-6 col-md-6 col-sm-6">
+                        <button class="btn btn-block btn-default">
+                            reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
