@@ -12,8 +12,14 @@
             currentMinute = parseInt($("#minute").html());
             currentSeconds = parseInt($("#seconds").html());
 
-            console.log(currentMinute);
-            console.log(currentSeconds);
+            if (currentSeconds > 0) {
+              setCountdown(currentMinute, currentSeconds-1);
+            } else if (currentMinute > 0) {
+              setCountdown(currentMinute-1, 59);
+            } else {
+              // timer is done at this point
+              console.log("timer done");
+            }
           }
 
           function setCountdown(minute, seconds) {
@@ -31,16 +37,14 @@
           function startTimer(startMinute, startSeconds) {
             setCountdown(startMinute, startSeconds);
 
-            return setInterval(1000, function() {
-              console.log('syche');
-            });
+            return setInterval(countdown, 1000);
           }
 
           $(document).ready(function(){
             setCountdown(20, 05);
 
             $("#start").on('click', function() {
-              interval = startTimer(15, 0);
+              interval = startTimer(1, 15);
             });
           });
         </script>
