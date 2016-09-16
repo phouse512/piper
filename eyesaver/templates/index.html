@@ -8,6 +8,16 @@
         <script src="{% static 'arkaios/js/jquery-1.11.1.min.js' %}"></script>
         <script src="{% static 'arkaios/js/bootstrap.min.js' %}"></script>
         <script type=text/javascript>
+          document.addEventListener('DOMContentLoaded', function() {
+            if (!Notification) {
+              alert('Desktop notifications are not available in your browser :(');
+              return;
+            }
+
+            if (Notification.permission !== "granted")
+              Notification.requestPermission();
+          });
+
           function countdown() {
             currentMinute = parseInt($("#minute").html());
             currentSeconds = parseInt($("#seconds").html());
