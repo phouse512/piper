@@ -4,10 +4,15 @@
         {% load static %}
         <link rel="stylesheet" href="{% static 'arkaios/css/bootstrap.min.css' %}" />
         <link rel="stylesheet" href="{% static 'css/eyesaver.css' %}" />
-        <title>Focus Attendance</title>
+        <title>Eye Saver</title>
         <script src="{% static 'arkaios/js/jquery-1.11.1.min.js' %}"></script>
         <script src="{% static 'arkaios/js/bootstrap.min.js' %}"></script>
         <script type=text/javascript>
+
+          var lastTime = Math.floor(Date.now() / 1000);
+          var timerInterval = 0;
+          var working = true;
+          var timerCounting = false;
           document.addEventListener('DOMContentLoaded', function() {
             if (!Notification) {
               alert('Desktop notifications are not available in your browser :(');
@@ -19,6 +24,16 @@
           });
 
           function countdown() {
+            var nowTime = Math.floor(Date.now() / 1000);
+            var diff = nowTime - lastTime;
+
+            console.log(diff);
+            lastTime = nowTime;
+
+            if (diff < 1 ||  !timerCounting) {
+              return;
+            }
+
             currentMinute = parseInt($("#minute").html());
             currentSeconds = parseInt($("#seconds").html());
 
@@ -28,8 +43,31 @@
               setCountdown(currentMinute-1, 59);
             } else {
               // timer is done at this point
-              console.log("timer done");
+              // clearInterval(timerInterval);
+              timerDone();
             }
+          }
+
+          function timerDone() {
+            var endBreakString = 'Your 20 second break is up, feel free to get back to work!';
+            var takeBreakString = 'You\'ve been using your computer for 20 minutes! Take a 20 second break to look somewhere else.';
+
+            if (working) {
+              var notification = new Notification('Take a break!', {
+                body: takeBreakString
+              });
+              working = false;
+              setCountdown(0, 20);
+              $("#instruct").html('until it\'s time to work!');
+            } else {
+              var notification = new Notification('Back to work!', {
+                body: endBreakString
+              });
+              working = true;
+              setCountdown(20, 0);
+              $("#instruct").html('until it\'s time to rest your eyes!');
+            }
+
           }
 
           function setCountdown(minute, seconds) {
@@ -47,14 +85,37 @@
           function startTimer(startMinute, startSeconds) {
             setCountdown(startMinute, startSeconds);
 
-            return setInterval(countdown, 1000);
           }
 
           $(document).ready(function(){
-            setCountdown(20, 05);
+            setCountdown(1, 00);
+            setInterval(countdown, 100);
 
             $("#start").on('click', function() {
-              interval = startTimer(1, 15);
+
+              currentMinute = parseInt($("#minute").html());
+              currentSeconds = parseInt($("#seconds").html());
+
+              if (!timerCounting) {
+                $(this).html('Stop');
+                timerCounting = true;
+                timerInterval = startTimer(currentMinute, currentSeconds);
+                $(this).removeClass('btn-primary');
+                if (!$(this).hasClass('btn-warning')) {
+                  $(this).addClass('btn-warning');
+                  console.log('needs the class');
+                }
+              } else {
+                timerCounting = false;
+                $(this).html('Start');
+                $(this).removeClass('btn-warning');
+                $(this).addClass('btn-primary');
+
+              }
+            });
+
+            $("#reset").on('click', function() {
+              location.reload();
             });
           });
         </script>
@@ -62,12 +123,13 @@
     <body class="large-group-tracking">
         <div class="row">
             <div class="center-block-eye col-lg-2 col-md-2 col-md-offset-5 col-lg-offset-5 col-sm-4 col-sm-offset-4">
-                <h1 class="text-center">the eyesaver</h1>
+                <h1 class="text-center">eyesaver</h1>
                 <p class="counter text-center">
                     <span id="minute">0</span>
                     :
                     <span id="seconds">00</span>
                 </p>
+                <h5 id="instruct" class="text-center">until it's time to rest your eyes</h5>
                 <div class="row">
                     <div class="col-lg-6 col-md-6 col-sm-6">
                         <button id="start" class="btn btn-block btn-primary">
@@ -75,7 +137,7 @@
                         </button>
                     </div>
                     <div class="col-lg-6 col-md-6 col-sm-6">
-                        <button class="btn btn-block btn-default">
+                        <button id="reset" class="btn btn-block btn-default">
                             reset
                         </button>
                     </div>
