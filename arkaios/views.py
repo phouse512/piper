@@ -35,9 +35,12 @@ def requires_auth(f):
         group_hash = kwargs['group_hash']
 
         if 'HTTP_AUTHORIZATION' in request.META:
+            print "made it to first"
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2:
+                print "made it to second"
                 if auth[0].lower() == 'basic':
+                    print "made it to third"
                     username, password = base64.b64decode(auth[1]).split(':')
                     user = authenticate(username, password, group_hash)
                     if user:
@@ -134,6 +137,7 @@ def event_toggle(request, group_hash, event_id):
     return HttpResponse(json.dumps(results_dict))
 
 
+@requires_auth
 def tracking(request, group_hash, event_id):
     event = get_object_or_404(Event, id=event_id)
     grade_options = GroupGrades.objects.filter(group_hash=group_hash)

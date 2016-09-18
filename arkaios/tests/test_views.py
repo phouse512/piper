@@ -19,15 +19,19 @@ class AdminTests(SimpleTestCase):
 
     @patch('arkaios.views.get_object_or_404')
     @patch('arkaios.views.Event')
-    def test_existing_group(self, event_patch, get_object_patch):
-        request = self.rf.get('/arkaios/test/admin/')
+    @patch('arkaios.views.authenticate')
+    @patch('arkaios.views.base64.b64decode')
+    def test_existing_group(self, base64_patch, auth_patch, event_patch, get_object_patch):
+        request = self.rf.get('/arkaios/test/admin/', HTTP_AUTHORIZATION="basic test:hi")
 
         event1 = Event(id=1, name="test", group_hash="wot", on=True)
 
         get_object_patch.return_value = MagicMock()
+        auth_patch.return_value = "hi"
+        base64_patch.return_value = "test:hi"
         event_patch.objects.filter.order_by.return_value = [event1]
 
-        response = admin_overview(request, self.group_hash)
+        response = admin_overview(request, group_hash=self.group_hash)
 
         self.assertEqual(200, response.status_code)
 
