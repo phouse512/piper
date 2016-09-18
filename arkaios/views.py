@@ -1,3 +1,4 @@
+import base64
 import csv
 import json
 
@@ -7,6 +8,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.shortcuts import redirect
+from functools import wraps
 
 from models import Attendee
 from models import Event, EventSerializer
@@ -16,6 +18,29 @@ from models import GroupGrades
 # Create your views here.
 
 
+def requires_auth(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        print "hello!!!!"
+        request = args[0]
+
+        if 'HTTP_AUTHORIZATION' in request.META:
+            auth = request.META['HTTP_AUTHORIZATION'].split()
+            if len(auth) == 2:
+                if auth[0].lower() == 'basic':
+                    username, password = base64.b64decode(auth[1]).split(':')
+                    print username, password
+                    return f(*args, **kwargs)
+
+        response = HttpResponse()
+        response.status_code = 401
+        response['WWW-Authenticate'] = 'Basic realm="%s"' % "Basci Auth Protected"
+        return response
+
+    return decorated
+
+
+@requires_auth
 def admin_overview(request, group_hash):
     group = get_object_or_404(Group, group_hash=group_hash)
 
