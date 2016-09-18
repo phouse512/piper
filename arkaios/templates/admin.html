@@ -68,7 +68,7 @@
                         <ul class="list-group">
                         {% for event in events %}
                             <li id="event_{{ event.id }}" class="list-group-item event">
-                                <span class="badge">31</span>
+                                <span class="badge">{{ event.count }}</span>
                                 <input id="switch_{{ event.id }}" type="checkbox" name="checkbox" checked>
                                 <a id="link_{{event.id }}" class="btn btn-default" href="{{ event.url }}">take attendance</a>
                                 {{ event.name }}

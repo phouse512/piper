@@ -1,5 +1,6 @@
 import json
 
+from django.db.models import Count
 from django.http import HttpResponse
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -18,7 +19,18 @@ def admin_overview(request, group_hash):
 
     events = Event.objects.filter(group_hash=group.group_hash).order_by('date')
 
+    counts = EventAttendance.objects.values('event_id').annotate(event_count=Count('event_id'))
+
     serializable_events = EventSerializer().serialize(events)
+
+    for event in serializable_events:
+        for i in counts:
+            if i['event_id'] == event['id']:
+                event['count'] = i['event_count']
+
+        if 'count' not in event:
+            event['count'] = 0
+
     context = {'name': group.name, 'events': serializable_events,
                'events_json': json.dumps(serializable_events),
                'group_hash': group_hash}
