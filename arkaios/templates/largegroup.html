@@ -21,14 +21,14 @@
     <body class="large-group-tracking">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-4">
-                <h1>Welcome to Focus!</h1>
+                <h1>Welcome to {{ group_name }}!</h1>
             </div>
         </div>
         <div class="row">
-            <div id="confirmation" class="col-lg-3 col-lg-offset-2 confirmation-image" style="display: none;">
+            <div id="confirmation" class="col-lg-3 col-md-3 col-md-offset-2 col-lg-offset-2 confirmation-image" style="display: none;">
                 <img src="{% static 'arkaios/img/checkmark.png' %}">
             </div>
-            <div id="input-form" class="col-lg-3 col-lg-offset-2">
+            <div id="input-form" class="col-md-3 col-md-offset-2 col-lg-3 col-lg-offset-2">
                 <input type="text" class="form-control" id="firstName" placeholder="first name..">
                 <input type="text" class="form-control" id="lastName" placeholder="last name..">
                 <input type="text" class="form-control" id="email" placeholder="email..">
@@ -41,7 +41,7 @@
                 </select>
                 <button id="submitAttendance" class="btn btn-block btn-primary">Submit</button>
             </div>
-            <div id="suggestionsList" class="col-lg-5">
+            <div id="suggestionsList" class="col-md-5 col-lg-5">
                 <ul class="list-group">
                 </ul>
                 <div id="helpContainer"></div>
