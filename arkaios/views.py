@@ -14,27 +14,39 @@ from models import Attendee
 from models import Event, EventSerializer
 from models import EventAttendance
 from models import Group
+from models import GroupAdmin
 from models import GroupGrades
-# Create your views here.
+
+
+def authenticate(username, password, group_hash):
+    group = Group.objects.filter(group_hash=group_hash)
+    if not group:
+        return None
+    user = GroupAdmin.objects.filter(name=username, password=password, group=group)
+    if not user:
+        return None
+    return user
 
 
 def requires_auth(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        print "hello!!!!"
         request = args[0]
+        group_hash = kwargs['group_hash']
 
         if 'HTTP_AUTHORIZATION' in request.META:
             auth = request.META['HTTP_AUTHORIZATION'].split()
             if len(auth) == 2:
                 if auth[0].lower() == 'basic':
                     username, password = base64.b64decode(auth[1]).split(':')
-                    print username, password
-                    return f(*args, **kwargs)
+                    user = authenticate(username, password, group_hash)
+                    if user:
+                        return f(*args, **kwargs)
 
         response = HttpResponse()
         response.status_code = 401
         response['WWW-Authenticate'] = 'Basic realm="%s"' % "Basci Auth Protected"
+        response.content = 'UNAUTHORIZED, get the right creds plz'
         return response
 
     return decorated
