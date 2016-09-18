@@ -30,11 +30,13 @@ class EventSerializer(Serializer):
         self._current['event_date'] = str(obj.date)
         self._current.pop('date')
         self._current['id'] = obj.id
-        self._current['url'] = reverse('track',
-                                       kwargs={
-                                           'group_hash': self._current['group_hash'],
-                                           'event_id': self._current['id']}
-                                       )
+        self._current['url'] = reverse('track', kwargs={
+            'group_hash': self._current['group_hash'],
+            'event_id': self._current['id']})
+        self._current['csv_url'] = reverse('csv', kwargs={
+            'group_hash': self._current['group_hash'],
+            'event_id': self._current['id']})
+
         return self._current
 
 

@@ -1,3 +1,4 @@
+import csv
 import json
 
 from django.db.models import Count
@@ -36,6 +37,29 @@ def admin_overview(request, group_hash):
                'events_json': json.dumps(serializable_events),
                'group_hash': group_hash}
     return render(request, 'admin.html', context)
+
+
+def csv_download(request, group_hash, event_id):
+    group = get_object_or_404(Group, group_hash=group_hash)
+    event = get_object_or_404(Event, id=event_id)
+
+    fullArray = []
+    fullArray.append([group.name, event.name, event.date])
+    fullArray.append(['Name', 'Year',  'First Time?'])
+
+    event_attendance = EventAttendance.objects.filter(event_id=event_id).select_related('attendee')
+    for record in event_attendance:
+        temp = [record.attendee.first_name + " " + record.attendee.last_name, record.attendee.year, record.first_time]
+        fullArray.append(temp)
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="' + event.name + '-' + str(event.date) + '.csv"'
+
+    writer = csv.writer(response)
+    for row in fullArray:
+        writer.writerow(row)
+
+    return response
 
 
 def create_event(request, group_hash):
