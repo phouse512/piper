@@ -11,6 +11,7 @@ from models import Attendee
 from models import Event, EventSerializer
 from models import EventAttendance
 from models import Group
+from models import GroupGrades
 # Create your views here.
 
 
@@ -74,8 +75,10 @@ def event_toggle(request, group_hash, event_id):
 
 def tracking(request, group_hash, event_id):
     event = get_object_or_404(Event, id=event_id)
+    grade_options = GroupGrades.objects.filter(group_hash=group_hash)
     context = {'url_root': request.get_host(), 'group_hash': group_hash,
                'event_id': event_id, 'event_name': event.name,
+               'grade_options': grade_options,
                'return_url': 'http://' + request.get_host() + '/arkaios/' + group_hash + '/admin/'}
     return render(request, 'largegroup.html', context)
 

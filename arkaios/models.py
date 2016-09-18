@@ -53,6 +53,13 @@ class Group(models.Model):
     name = models.CharField(max_length=40)
 
 
+class GroupGrades(models.Model):
+
+    id = models.AutoField(primary_key=True)
+    group_hash = models.CharField(max_length=10, default="test")
+    option_value = models.CharField(max_length=30)
+
+
 class AdminUsers(models.Model):
 
     id = models.AutoField(primary_key=True)

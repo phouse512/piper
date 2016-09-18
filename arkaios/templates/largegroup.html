@@ -35,11 +35,9 @@
                 <!--<input type="text" class="form-control" id="dorm" placeholder="dorm..">-->
                 <select class="form-control">
                     <option value="">choose..</option>
-                    <option value="freshman">Freshman</option>
-                    <option value="sophomore">Sophomore</option>
-                    <option value="junior">Junior</option>
-                    <option value="senior">Senior</option>
-                    <option value="other">Other</option>
+                    {% for option in grade_options %}
+                        <option value="{{ option.option_value }}">{{ option.option_value }}</option>
+                    {% endfor %}
                 </select>
                 <button id="submitAttendance" class="btn btn-block btn-primary">Submit</button>
             </div>
