@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^github/', include('github.urls')),
     url(r'^status/', include('heartbeater.urls')),
     url(r'^arkaios/', include('arkaios.urls')),
-    url(r'^eyesaver/', include('eyesaver.urls'))
+    url(r'^eyesaver/', include('eyesaver.urls')),
+    url(r'^polls/', include('poller.urls'))
 ]
 

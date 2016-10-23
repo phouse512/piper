@@ -54,7 +54,8 @@ INSTALLED_APPS = (
     'jawbone',
     'pathfinder',
     'arkaios',
-    'eyesaver'
+    'eyesaver',
+    'poller'
 )
 
 MIDDLEWARE_CLASSES = (

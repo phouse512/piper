@@ -4,6 +4,7 @@ from django.db import models
 
 # Create your models here.
 
+
 class Users(models.Model):
 
     id = models.AutoField(primary_key=True)
@@ -37,7 +38,16 @@ class Answers(models.Model):
 
     id = models.AutoField(primary_key=True)
     text = models.CharField(max_length=200)
-    poll = models.ForeignKey(Poll)
+    poll = models.ForeignKey(Poll, related_name='answers')
+
+
+class Votes(models.Model):
+
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(Users, related_name='votes')
+    poll = models.ForeignKey(Poll, related_name='votes')
+    points = models.IntegerField(default=0)
+    created = models.DateTimeField(default=datetime.datetime.now)
 
 
 
