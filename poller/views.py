@@ -1,5 +1,6 @@
 import base64
 
+from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
@@ -9,6 +10,7 @@ from functools import wraps
 
 from poller.models import Poll, Answers, Votes
 from poller.models import Users
+from poller.forms import SignupForm
 
 # Create your views here.
 
@@ -44,23 +46,77 @@ def requires_auth(f):
     return decorated
 
 
-def home(request):
+def attach_user(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        print "hm"
+        request = args[0]
+
+        if 'HTTP_AUTHORIZATION' in request.META:
+            print "http"
+            auth = request.META['HTTP_AUTHORIZATION'].split()
+            if len(auth) == 2:
+                print "len"
+                if auth[0].lower() == 'basic':
+                    print "i'm basic"
+                    username, password = base64.b64decode(auth[1]).split(':')
+                    user = authenticate(username, password)
+                    print user
+                    if user:
+                        kwargs['login_user'] = user.first()
+
+        return f(*args, **kwargs)
+    return decorated
+
+
+@requires_auth
+def home(request, **kwargs):
 
     active_polls = Poll.objects.filter(open=True, finished=False).all()
+    login_user = kwargs.get('user', None)
 
-    return render(request, 'home.html', {'polls': active_polls})
+    return render(request, 'home.html', {'polls': active_polls, 'user': login_user})
 
 
 @requires_auth
 def view_poll(request, poll_id, **kwargs):
     poll = get_object_or_404(Poll, id=poll_id)
+    login_user = kwargs.get('user')
 
-    return render(request, 'poll.html', {'poll': poll})
+    return render(request, 'poll.html', {'poll': poll, 'user': login_user})
 
 
 def signup(request):
     return render(request, 'signup.html')
 
+
+def logout(request):
+    return render(request, 'logout.html')
+
+
+def create_user(request):
+    form = SignupForm(request.POST)
+    if form.is_valid():
+
+        existing_user = Users.objects.filter(username=form.cleaned_data['username']).first()
+        if existing_user:
+            messages.add_message(request, messages.ERROR, "A user with that username already exists.")
+            return redirect('poller.views.signup')
+
+        new_user = Users.objects.create(
+            username=form.cleaned_data['username'],
+            pin=form.cleaned_data['pinInput'],
+            email=form.cleaned_data['emailInput']
+        )
+
+        # create user
+
+        messages.add_message(request, messages.INFO, "You've successfully signed up!")
+        return redirect('poller.views.home')
+
+    print form.errors
+    messages.add_message(request, messages.WARNING, "invalid form, please fill in all fields")
+    return redirect('poller.views.signup')
 
 @requires_auth
 def save_vote(request, poll_id, answer_id, **kwargs):
@@ -70,12 +126,21 @@ def save_vote(request, poll_id, answer_id, **kwargs):
     print user
 
     if not poll.open or poll.finished:
-        print "hm"
+        messages.add_message(request, messages.INFO, 'Sorry, this poll is closed.')
         return HttpResponseRedirect(reverse('view_poll', kwargs={ 'poll_id': poll_id}))
+
+    existing_vote = Votes.objects.filter(user=user, poll=poll).first()
+    if existing_vote:
+        messages.add_message(request, messages.INFO, 'Updated your vote.')
+        existing_vote.answer = answer
+        existing_vote.save()
+        return redirect('poller.views.view_poll', poll_id)
 
     new_vote = Votes.objects.create(
         poll=poll,
-        user=user
+        user=user,
+        answer=answer
     )
-    print "HAR"
+
+    messages.add_message(request, messages.INFO, 'Successfully saved your vote.')
     return redirect('poller.views.view_poll', poll_id=poll_id)

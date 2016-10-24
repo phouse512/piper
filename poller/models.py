@@ -46,6 +46,7 @@ class Votes(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(Users, related_name='votes')
     poll = models.ForeignKey(Poll, related_name='votes')
+    answer = models.ForeignKey(Answers, related_name='votes', default=1)
     points = models.IntegerField(default=0)
     created = models.DateTimeField(default=datetime.datetime.now)
 
