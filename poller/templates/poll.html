@@ -46,7 +46,7 @@
                             {% endfor %}
                         {% endif %}
                         <h3>{{ poll.question }}</h3>
-                        <h5>poll closes at {{ poll.finish_time }}</h5>
+                        <h5>poll closes at {{ poll.finish_time }} GMT</h5>
                         <h6>this poll currently has {{ poll.votes.all|length }} votes.</h6>
                         <ul class="list-group">
                         {% for answer in poll.answers.all %}
