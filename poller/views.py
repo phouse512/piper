@@ -2,6 +2,7 @@ import base64
 
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.db.models import Count
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -74,17 +75,32 @@ def home(request, **kwargs):
 
     active_polls = Poll.objects.filter(open=True, finished=False).all()
     login_user = kwargs.get('user', None)
+    leaderboard_by_points = Users.objects.order_by('-points_total').all()
 
-    return render(request, 'home.html', {'polls': active_polls, 'user': login_user})
+    leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')
+    print leaderboard_by_votes
+
+    return render(request, 'home.html', {'polls': active_polls, 'user': login_user,
+                                         'points_leaderboard': leaderboard_by_points,
+                                         'votes_leaderboard': leaderboard_by_votes})
 
 
 @requires_auth
 def view_poll(request, poll_id, **kwargs):
     poll = get_object_or_404(Poll, id=poll_id)
+
     login_user = kwargs.get('user')
 
     return render(request, 'poll.html', {'poll': poll, 'user': login_user})
 
+
+
+@requires_auth
+def profile(request, **kwargs):
+    login_user = kwargs.get('user')
+    votes = Votes.objects.filter(user=login_user).select_related('answer').all()
+
+    return render(request, 'profile.html', {'user': login_user, 'votes': votes})
 
 def signup(request):
     return render(request, 'signup.html')

@@ -25,7 +25,7 @@
                             <ul class="nav navbar-nav">
                                 <li class="active"><a href="#">All Polls<span class="sr-only">(current)</span></a></li>
                                 <li><a href="#">Leaderboard<span class="sr-only">(current)</span></a></li>
-                                <li><a href="#">Profile<span class="sr-only">(current)</span></a></li>
+                                <li><a href="/polls/profile/">Profile<span class="sr-only">(current)</span></a></li>
                             </ul>
                             {% if user %}
                                 <p class="navbar-text navbar-right"><a href="/polls/logout/" class="navbar-link">Logout</a></p>
@@ -55,7 +55,40 @@
                             </a>
                         {% endfor %}
                         </ul>
-
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <table class="table table-striped">
+                            <h5>Points Leaderboard</h5>
+                            <tr>
+                                <th>#</th>
+                                <th>username</th>
+                                <th>points</th>
+                            </tr>
+                            {% for user in points_leaderboard %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.points_total }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    <div class="col-lg-6 col-md-6">
+                        <table class="table table-striped">
+                            <h5>Questions Answered Leaderboard (this is a bad metric)</h5>
+                            <tr>
+                                <th>#</th>
+                                <th>username</th>
+                                <th>vote count</th>
+                            </tr>
+                            {% for user in votes_leaderboard %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.votes.all|length }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
                     </div>
                 </div>
             </div>

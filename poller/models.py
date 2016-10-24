@@ -12,6 +12,7 @@ class Users(models.Model):
     pin = models.CharField(max_length=10)
     email = models.CharField(max_length=150)
     join_date = models.DateTimeField(default=datetime.datetime.now)
+    points_total = models.IntegerField(default=0)
 
 
 class Scores(models.Model):
