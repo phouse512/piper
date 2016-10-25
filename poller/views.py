@@ -102,6 +102,7 @@ def profile(request, **kwargs):
 
     return render(request, 'profile.html', {'user': login_user, 'votes': votes})
 
+
 def signup(request):
     return render(request, 'signup.html')
 
@@ -131,7 +132,7 @@ def create_user(request):
         return redirect('poller.views.home')
 
     print form.errors
-    messages.add_message(request, messages.WARNING, "invalid form, please fill in all fields")
+    messages.add_message(request, messages.WARNING, "invalid form, please fill in all fields and make pw less than 11 chars")
     return redirect('poller.views.signup')
 
 @requires_auth
