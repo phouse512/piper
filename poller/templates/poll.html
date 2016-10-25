@@ -52,7 +52,6 @@
                         {% for answer in poll.answers.all %}
                             <li class="list-group-item">
                                 {{ answer.text }}
-                                - <strong>{{ answer.votes.all|length }} votes</strong>
                                 <a href="/polls/event/{{ poll.id }}/save/{{ answer.id }}/" class="right btn btn-default">vote</a>
                             </li>
                         {% endfor %}
