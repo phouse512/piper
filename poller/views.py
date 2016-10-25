@@ -12,6 +12,7 @@ from functools import wraps
 from poller.models import Poll, Answers, Votes
 from poller.models import Users
 from poller.forms import SignupForm
+from poller.scoring import score_poll
 
 # Create your views here.
 
@@ -62,7 +63,6 @@ def attach_user(f):
                     print "i'm basic"
                     username, password = base64.b64decode(auth[1]).split(':')
                     user = authenticate(username, password)
-                    print user
                     if user:
                         kwargs['login_user'] = user.first()
 
@@ -75,10 +75,9 @@ def home(request, **kwargs):
 
     active_polls = Poll.objects.filter(open=True, finished=False).all()
     login_user = kwargs.get('user', None)
-    leaderboard_by_points = Users.objects.order_by('-points_total').all()
+    leaderboard_by_points = Users.objects.order_by('-points_total').all()[:10]
 
-    leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')
-    print leaderboard_by_votes
+    leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')[:10]
 
     return render(request, 'home.html', {'polls': active_polls, 'user': login_user,
                                          'points_leaderboard': leaderboard_by_points,
@@ -88,7 +87,7 @@ def home(request, **kwargs):
 @requires_auth
 def view_poll(request, poll_id, **kwargs):
     poll = get_object_or_404(Poll, id=poll_id)
-
+    # print score_poll(4, 1, False)
     login_user = kwargs.get('user')
 
     return render(request, 'poll.html', {'poll': poll, 'user': login_user})
@@ -134,6 +133,7 @@ def create_user(request):
     print form.errors
     messages.add_message(request, messages.WARNING, "invalid form, please fill in all fields and make pw less than 11 chars")
     return redirect('poller.views.signup')
+
 
 @requires_auth
 def save_vote(request, poll_id, answer_id, **kwargs):

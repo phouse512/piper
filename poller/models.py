@@ -12,15 +12,7 @@ class Users(models.Model):
     pin = models.CharField(max_length=10)
     email = models.CharField(max_length=150)
     join_date = models.DateTimeField(default=datetime.datetime.now)
-    points_total = models.IntegerField(default=0)
-
-
-class Scores(models.Model):
-
-    id = models.AutoField(primary_key=True)
-    score = models.IntegerField()
-    created = models.DateTimeField(default=datetime.datetime.now)
-    user = models.ForeignKey(Users)
+    points_total = models.DecimalField(default=0, decimal_places=3, max_digits=15)
 
 
 class Poll(models.Model):
@@ -48,10 +40,13 @@ class Votes(models.Model):
     user = models.ForeignKey(Users, related_name='votes')
     poll = models.ForeignKey(Poll, related_name='votes')
     answer = models.ForeignKey(Answers, related_name='votes', default=1)
-    points = models.IntegerField(default=0)
     created = models.DateTimeField(default=datetime.datetime.now)
 
 
+class Scores(models.Model):
 
-
-
+    id = models.AutoField(primary_key=True)
+    points = models.DecimalField(default=0, decimal_places=3, max_digits=15)
+    created = models.DateTimeField(default=datetime.datetime.now)
+    vote = models.ForeignKey(Votes)
+    user = models.ForeignKey(Users)
