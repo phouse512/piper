@@ -34,6 +34,7 @@ def score_poll(poll_id, correct_id, save_scores): #poll_id: integer, save_scores
     right_answer_score = 0
     wrong_answers_score = 0
     for answer in all_answers:
+        print(str(len(answer.votes.all())) + " votes for answer id: " + str(answer.id))
         if answer.id == correct_id:
             # this is the right answer, calculate accordingly
 
