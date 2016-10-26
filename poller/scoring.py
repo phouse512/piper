@@ -62,7 +62,7 @@ def score_poll(poll_id, correct_id, save_scores): #poll_id: integer, save_scores
 
     # time to iterate over votes and create scores objects
     for vote in all_votes:
-        points_to_add = answer_dict[vote.anser.id]
+        points_to_add = answer_dict[vote.answer.id]
 
         new_score = Scores.objects.create(
             points=points_to_add,
