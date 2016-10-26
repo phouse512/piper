@@ -9,5 +9,6 @@ urlpatterns = [
     url(r'^create_user/', views.create_user, name='create'),
     url(r'^logout/', views.logout, name='logout'),
     url(r'^profile/', views.profile, name='profile'),
+    url(r'^leaderboard/', views.leaderboard, name='leaderboard'),
     url(r'^', views.home, name='home')
 ]

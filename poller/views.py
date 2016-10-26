@@ -95,7 +95,6 @@ def view_poll(request, poll_id, **kwargs):
     return render(request, 'poll.html', {'poll': poll, 'user': login_user})
 
 
-
 @requires_auth
 def profile(request, **kwargs):
     login_user = kwargs.get('user')
@@ -103,6 +102,17 @@ def profile(request, **kwargs):
 
     return render(request, 'profile.html', {'user': login_user, 'votes': votes})
 
+
+@requires_auth
+def leaderboard(request, **kwargs):
+    login_user = kwargs.get('user')
+
+    leaderboard_by_points = Users.objects.order_by('-points_total').all()
+    leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')
+
+    return render(request, 'leaderboard.html', {'points_leaderboard': leaderboard_by_points,
+                                                'votes_leaderboard': leaderboard_by_votes,
+                                                'user': login_user})
 
 def signup(request):
     return render(request, 'signup.html')

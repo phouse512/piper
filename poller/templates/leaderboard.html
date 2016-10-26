@@ -23,8 +23,8 @@
                         </div>
                         <div class="collapse navbar-collapse">
                             <ul class="nav navbar-nav">
-                                <li class="active"><a href="#">All Polls<span class="sr-only">(current)</span></a></li>
-                                <li><a href="/polls/leaderboard/">Leaderboard<span class="sr-only">(current)</span></a></li>
+                                <li><a href="/polls/">All Polls<span class="sr-only">(current)</span></a></li>
+                                <li class="active"><a href="#">Leaderboard<span class="sr-only">(current)</span></a></li>
                                 <li><a href="/polls/profile/">Profile<span class="sr-only">(current)</span></a></li>
                             </ul>
                             {% if user %}
@@ -36,37 +36,6 @@
                 </nav>
 
                 <div class="row">
-                    <div class="col-lg-12 col-md-12 col-sm-12">
-                        {% if messages %}
-                            {% for message in messages %}
-                            <div class="alert alert-success alert-dismissible" role="alert">
-                                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                                {{ message }}
-                            </div>
-                            {% endfor %}
-                        {% endif %}
-                        <h3>Open Polls</h3>
-                        <ul class="list-group">
-                        {% for poll in polls %}
-                            <a href="/polls/event/{{ poll.id }}/" class="list-group-item">
-                                {{ poll.question }}
-                                <span class="badge">{{ poll.votes.all|length }} votes</span>
-
-                            </a>
-                        {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="col-lg-12 col-md-12 col-sm-12">
-                        <h3>Recently Finished Polls</h3>
-                        <ul class="list-group">
-                        {% for poll in recently_closed %}
-                            <a href="/polls/event/{{ poll.id }}/" class="list-group-item">
-                                {{ poll.question }}
-                                <span class="badge">{{ poll.votes.all|length }} votes</span>
-                            </a>
-                        {% endfor %}
-                        </ul>
-                    </div>
                     <div class="col-lg-6 col-md-6 col-sm-12">
                         <table class="table table-striped">
                             <h5>Points Leaderboard</h5>
