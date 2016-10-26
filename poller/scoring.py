@@ -29,6 +29,8 @@ def score_poll(poll_id, correct_id, save_scores): #poll_id: integer, save_scores
     if not exists:
         return "correct answer doesn't exist"
 
+    answer_dict = {}
+
     right_answer_score = 0
     wrong_answers_score = 0
     for answer in all_answers:
@@ -42,12 +44,15 @@ def score_poll(poll_id, correct_id, save_scores): #poll_id: integer, save_scores
 
             right_answer_score = Decimal(.5) + (1 - percentage) + weighted_add
 
+            answer_dict[answer.id] = right_answer_score
             print("right answer: " + str(right_answer_score))
 
         else:
             # wrong answer
             wrong_answers_score = Decimal(-.25) - (1 - (Decimal(len(answer.votes.all()))/Decimal(len(all_votes)))) \
                                   - (Decimal(existing_poll.weight) * Decimal(.1))
+
+            answer_dict[answer.id] = wrong_answers_score
 
             print("wrong answer: " + str(wrong_answers_score))
 
@@ -56,10 +61,7 @@ def score_poll(poll_id, correct_id, save_scores): #poll_id: integer, save_scores
 
     # time to iterate over votes and create scores objects
     for vote in all_votes:
-        if vote.answer.id == correct_id:
-            points_to_add = right_answer_score
-        else:
-            points_to_add = wrong_answers_score
+        points_to_add = answer_dict[vote.anser.id]
 
         new_score = Scores.objects.create(
             points=points_to_add,
