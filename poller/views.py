@@ -78,10 +78,12 @@ def home(request, **kwargs):
     leaderboard_by_points = Users.objects.order_by('-points_total').all()[:10]
 
     leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')[:10]
+    recently_closed = Poll.objects.filter(open=False, finished=True).order_by('-finish_time')[:5]
 
     return render(request, 'home.html', {'polls': active_polls, 'user': login_user,
                                          'points_leaderboard': leaderboard_by_points,
-                                         'votes_leaderboard': leaderboard_by_votes})
+                                         'votes_leaderboard': leaderboard_by_votes,
+                                         'recently_closed': recently_closed})
 
 
 @requires_auth

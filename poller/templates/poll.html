@@ -46,16 +46,24 @@
                             {% endfor %}
                         {% endif %}
                         <h3>{{ poll.question }}</h3>
-                        <h5>poll closes at {{ poll.finish_time }} GMT</h5>
+                        <h5>poll close{% if poll.open %}s{% else %}d{% endif %} at {{ poll.finish_time }} GMT</h5>
                         <h6>this poll currently has {{ poll.votes.all|length }} votes.</h6>
                         <ul class="list-group">
                         {% for answer in poll.answers.all %}
                             <li class="list-group-item">
                                 {{ answer.text }}
-                                <a href="/polls/event/{{ poll.id }}/save/{{ answer.id }}/" class="right btn btn-default">vote</a>
+                                <a href="/polls/event/{{ poll.id }}/save/{{ answer.id }}/" class="right btn
+                                        btn-default" {% if poll.open == False %} disabled="disabled" {% endif %}>vote</a>
                             </li>
                         {% endfor %}
                         </ul>
+                        <hr />
+                        {% if poll.open == False %}
+                        <h4>Poll is now closed.</h4>
+                            {% for answer in poll.answers.all %}
+                                <h5>{{ answer.text }} has {{ answer.votes.all|length }} votes.</h5>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>
