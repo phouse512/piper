@@ -168,259 +168,270 @@ class Command(BaseCommand):
         #     poll=kyrie
         # )
         #
-        new_poll = Poll.objects.create(
+
+        harden = Poll.objects.create(
             open=True,
             finished=False,
-            weight=1,
-            question='Chicago Cubs at Cleveland Indians - World Series Game 2',
+            weight=3,
+            question='shots taken by James Harden against the Lakers',
             correct_id=0,
-            finish_time="2016-10-27 23:00:00+00"
-        )
-        #
-        cleveland_answer = Answers.objects.create(
-            text="Cleveland Indians",
-            poll=new_poll
-        )
-
-        chicago_answer = Answers.objects.create(
-            text="Chicago Cubs",
-            poll=new_poll
-        )
-
-        cleveland_hitting = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=2,
-            question='total number of hits by Cleveland batters',
-            correct_id=0,
-            finish_time="2016-10-27 23:00:00+00"
+            finish_time="2016-10-28 02:30:00+00"
         )
         #
         little = Answers.objects.create(
-            text="less than 6",
-            poll=cleveland_hitting
+            text="less than 14",
+            poll=harden
         )
 
         middle = Answers.objects.create(
-            text="6, 7, or 8",
-            poll=cleveland_hitting
+            text="14, 15, or 16",
+            poll=harden
         )
 
         last = Answers.objects.create(
-            text="9 or more",
-            poll=cleveland_hitting
+            text="17, 18, or 19",
+            poll=harden
         )
 
-        chicago_hitting = Poll.objects.create(
+        another = Answers.objects.create(
+            text="20 or more",
+            poll=harden
+        )
+
+        westbrook = Poll.objects.create(
             open=True,
             finished=False,
-            weight=2,
-            question='total number of hits by Chicago batters',
-            correct_id=0,
-            finish_time="2016-10-27 23:00:00+00"
-        )
-        #
-        kyrie1 = Answers.objects.create(
-            text="less than 6",
-            poll=chicago_hitting
-        )
-
-        kyrie2 = Answers.objects.create(
-            text="6, 7, or 8",
-            poll=chicago_hitting
-        )
-
-        kyrie3 = Answers.objects.create(
-            text="9 or more",
-            poll=chicago_hitting
-        )
-
-        miami = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Miami Heat at Orlando Magic',
-            correct_id=0,
-            finish_time="2016-10-27 23:00:00+00"
-        )
-        #
-        miami_heat = Answers.objects.create(
-            text="Miami Heat",
-            poll=miami
-        )
-
-        orland = Answers.objects.create(
-            text="Orlando Magic",
-            poll=miami
-        )
-
-        dallas = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Dallas Mavericks at Indiana Pacers',
-            correct_id=0,
-            finish_time="2016-10-27 23:00:00+00"
-        )
-        #
-        dallas_mavs = Answers.objects.create(
-            text="Dallas Mavericks",
-            poll=dallas
-        )
-
-        orland = Answers.objects.create(
-            text="Indiana Pacers",
-            poll=dallas
-        )
-
-        brooklynceltics = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Brooklyn Nets at Boston Celtics',
-            correct_id=0,
-            finish_time="2016-10-27 23:30:00+00"
-        )
-        #
-        brooklyn = Answers.objects.create(
-            text="Brooklyn Nets",
-            poll=brooklynceltics
-        )
-
-        celtics = Answers.objects.create(
-            text="Boston Celtics",
-            poll=brooklynceltics
-        )
-
-        detroitraptors = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Detroit Pistons at Toronto Raptors',
-            correct_id=0,
-            finish_time="2016-10-27 23:30:00+00"
-        )
-        #
-        detroit = Answers.objects.create(
-            text="Detroit Pistons",
-            poll=detroitraptors
-        )
-
-        toronto = Answers.objects.create(
-            text="Toronto Raptors",
-            poll=detroitraptors
-        )
-
-        charlottebucks = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Charlotte Hornets at Milwaukee Bucks',
+            weight=3,
+            question='how will Russell Westbrook do against the Sixers?',
             correct_id=0,
             finish_time="2016-10-28 00:00:00+00"
         )
         #
-        charlotte = Answers.objects.create(
-            text="Charlotte Hornets",
-            poll=charlottebucks
+        westbrook1 = Answers.objects.create(
+            text="triple double",
+            poll=westbrook
         )
 
-        milwaukee = Answers.objects.create(
-            text="Milwaukee Bucks",
-            poll=charlottebucks
+        westbrook2 = Answers.objects.create(
+            text="double double",
+            poll=westbrook
         )
 
-        minnesotagrizzlies = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Minnesota Timberwolves at Memphis Grizzlies',
-            correct_id=0,
-            finish_time="2016-10-28 00:00:00+00"
+        westbrook3 = Answers.objects.create(
+            text="none of the above",
+            poll=westbrook
         )
+
+        # chicago_hitting = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=2,
+        #     question='total number of hits by Chicago batters',
+        #     correct_id=0,
+        #     finish_time="2016-10-27 23:00:00+00"
+        # )
+        # #
+        # kyrie1 = Answers.objects.create(
+        #     text="less than 6",
+        #     poll=chicago_hitting
+        # )
         #
-        minnesota = Answers.objects.create(
-            text="Minnesota Timberwolves",
-            poll=minnesotagrizzlies
-        )
-
-        memphis = Answers.objects.create(
-            text="Memphis Grizzlies",
-            poll=minnesotagrizzlies
-        )
-
-        denver_pelicans = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Denver Nuggets at New Orleans Pelicans',
-            correct_id=0,
-            finish_time="2016-10-28 00:00:00+00"
-        )
-
-        denver = Answers.objects.create(
-            text="Denver Nuggets",
-            poll=denver_pelicans
-        )
-
-        neworleans = Answers.objects.create(
-            text="New Orleans Pelicans",
-            poll=denver_pelicans
-        )
-
-        oklahoma_sixers = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Oklahoma City Thunder at Philadelphia Sixers',
-            correct_id=0,
-            finish_time="2016-10-28 00:00:00+00"
-        )
-
-        okc = Answers.objects.create(
-            text="Oklahoma City Thunder",
-            poll=oklahoma_sixers
-        )
-
-        sixers = Answers.objects.create(
-            text="Philadelphia Sixers",
-            poll=oklahoma_sixers
-        )
-
-        sacramentosuns = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Sacramento Kings at Phoenix Suns',
-            correct_id=0,
-            finish_time="2016-10-28 02:00:00+00"
-        )
-
-        phoenix = Answers.objects.create(
-            text="Phoenix Suns",
-            poll=sacramentosuns
-        )
-
-        kings = Answers.objects.create(
-            text="Sacramento Kings",
-            poll=sacramentosuns
-        )
-
-        houston_lakers = Poll.objects.create(
-            open=True,
-            finished=False,
-            weight=1,
-            question='Houston Rockets at Los Angeles Lakers',
-            correct_id=0,
-            finish_time="2016-10-28 02:00:00+00"
-        )
-
-        houston = Answers.objects.create(
-            text="Houston Rockets",
-            poll=houston_lakers
-        )
-
-        lakers = Answers.objects.create(
-            text="Los Angeles Lakers",
-            poll=houston_lakers
-        )
+        # kyrie2 = Answers.objects.create(
+        #     text="6, 7, or 8",
+        #     poll=chicago_hitting
+        # )
+        #
+        # kyrie3 = Answers.objects.create(
+        #     text="9 or more",
+        #     poll=chicago_hitting
+        # )
+        #
+        # miami = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Miami Heat at Orlando Magic',
+        #     correct_id=0,
+        #     finish_time="2016-10-27 23:00:00+00"
+        # )
+        # #
+        # miami_heat = Answers.objects.create(
+        #     text="Miami Heat",
+        #     poll=miami
+        # )
+        #
+        # orland = Answers.objects.create(
+        #     text="Orlando Magic",
+        #     poll=miami
+        # )
+        #
+        # dallas = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Dallas Mavericks at Indiana Pacers',
+        #     correct_id=0,
+        #     finish_time="2016-10-27 23:00:00+00"
+        # )
+        # #
+        # dallas_mavs = Answers.objects.create(
+        #     text="Dallas Mavericks",
+        #     poll=dallas
+        # )
+        #
+        # orland = Answers.objects.create(
+        #     text="Indiana Pacers",
+        #     poll=dallas
+        # )
+        #
+        # brooklynceltics = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Brooklyn Nets at Boston Celtics',
+        #     correct_id=0,
+        #     finish_time="2016-10-27 23:30:00+00"
+        # )
+        # #
+        # brooklyn = Answers.objects.create(
+        #     text="Brooklyn Nets",
+        #     poll=brooklynceltics
+        # )
+        #
+        # celtics = Answers.objects.create(
+        #     text="Boston Celtics",
+        #     poll=brooklynceltics
+        # )
+        #
+        # detroitraptors = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Detroit Pistons at Toronto Raptors',
+        #     correct_id=0,
+        #     finish_time="2016-10-27 23:30:00+00"
+        # )
+        # #
+        # detroit = Answers.objects.create(
+        #     text="Detroit Pistons",
+        #     poll=detroitraptors
+        # )
+        #
+        # toronto = Answers.objects.create(
+        #     text="Toronto Raptors",
+        #     poll=detroitraptors
+        # )
+        #
+        # charlottebucks = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Charlotte Hornets at Milwaukee Bucks',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 00:00:00+00"
+        # )
+        # #
+        # charlotte = Answers.objects.create(
+        #     text="Charlotte Hornets",
+        #     poll=charlottebucks
+        # )
+        #
+        # milwaukee = Answers.objects.create(
+        #     text="Milwaukee Bucks",
+        #     poll=charlottebucks
+        # )
+        #
+        # minnesotagrizzlies = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Minnesota Timberwolves at Memphis Grizzlies',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 00:00:00+00"
+        # )
+        # #
+        # minnesota = Answers.objects.create(
+        #     text="Minnesota Timberwolves",
+        #     poll=minnesotagrizzlies
+        # )
+        #
+        # memphis = Answers.objects.create(
+        #     text="Memphis Grizzlies",
+        #     poll=minnesotagrizzlies
+        # )
+        #
+        # denver_pelicans = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Denver Nuggets at New Orleans Pelicans',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 00:00:00+00"
+        # )
+        #
+        # denver = Answers.objects.create(
+        #     text="Denver Nuggets",
+        #     poll=denver_pelicans
+        # )
+        #
+        # neworleans = Answers.objects.create(
+        #     text="New Orleans Pelicans",
+        #     poll=denver_pelicans
+        # )
+        #
+        # oklahoma_sixers = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Oklahoma City Thunder at Philadelphia Sixers',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 00:00:00+00"
+        # )
+        #
+        # okc = Answers.objects.create(
+        #     text="Oklahoma City Thunder",
+        #     poll=oklahoma_sixers
+        # )
+        #
+        # sixers = Answers.objects.create(
+        #     text="Philadelphia Sixers",
+        #     poll=oklahoma_sixers
+        # )
+        #
+        # sacramentosuns = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Sacramento Kings at Phoenix Suns',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 02:00:00+00"
+        # )
+        #
+        # phoenix = Answers.objects.create(
+        #     text="Phoenix Suns",
+        #     poll=sacramentosuns
+        # )
+        #
+        # kings = Answers.objects.create(
+        #     text="Sacramento Kings",
+        #     poll=sacramentosuns
+        # )
+        #
+        # houston_lakers = Poll.objects.create(
+        #     open=True,
+        #     finished=False,
+        #     weight=1,
+        #     question='Houston Rockets at Los Angeles Lakers',
+        #     correct_id=0,
+        #     finish_time="2016-10-28 02:00:00+00"
+        # )
+        #
+        # houston = Answers.objects.create(
+        #     text="Houston Rockets",
+        #     poll=houston_lakers
+        # )
+        #
+        # lakers = Answers.objects.create(
+        #     text="Los Angeles Lakers",
+        #     poll=houston_lakers
+        # )
