@@ -36,6 +36,9 @@ DEBUG = False
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SECURE = False
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_NAME = 'DSESSIONID'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'piper.phizzle.space', 'arkaios.space', 'www.arkaios.space', 'sports.phizzle.space',
                  'www.sports.phizzle.space']
@@ -74,7 +77,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'auth.UserAuthentication',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
 ROOT_URLCONF = 'piper.urls'
