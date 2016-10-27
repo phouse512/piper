@@ -91,8 +91,13 @@ def view_poll(request, poll_id, **kwargs):
     poll = get_object_or_404(Poll, id=poll_id)
     # print score_poll(4, 1, False)
     login_user = kwargs.get('user')
+    user_vote = Votes.objects.filter(user=login_user, poll=poll).first
 
-    return render(request, 'poll.html', {'poll': poll, 'user': login_user})
+    context = {'poll': poll, 'user': login_user}
+    if user_vote:
+        context['user_vote'] = user_vote
+
+    return render(request, 'poll.html', context)
 
 
 @requires_auth

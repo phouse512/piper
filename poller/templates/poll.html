@@ -50,8 +50,9 @@
                         <h6>this poll currently has {{ poll.votes.all|length }} votes.</h6>
                         <ul class="list-group">
                         {% for answer in poll.answers.all %}
-                            <li class="list-group-item">
+                            <li class="list-group-item {% if user_vote.answer_id == answer.id %}list-group-item-info{% endif %}">
                                 {{ answer.text }}
+                                {% if user_vote.answer_id == answer.id %} - your vote{% endif %}
                                 <a href="/polls/event/{{ poll.id }}/save/{{ answer.id }}/" class="right btn
                                         btn-default" {% if poll.open == False %} disabled="disabled" {% endif %}>vote</a>
                             </li>
