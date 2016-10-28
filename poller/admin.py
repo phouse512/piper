@@ -12,3 +12,7 @@ admin.site.register(Answers)
 admin.site.register(Votes)
 admin.site.register(Scores)
 admin.site.register(Users)
+
+
+class PollAdmin(admin.ModelAdmin):
+    list_display = ['question']
