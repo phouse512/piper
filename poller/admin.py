@@ -7,12 +7,13 @@ from poller.models import Users
 
 # Register your models here.
 
-admin.site.register(Poll)
+class PollAdmin(admin.ModelAdmin):
+    list_display = ['question']
+
+admin.site.register(Poll, PollAdmin)
 admin.site.register(Answers)
 admin.site.register(Votes)
 admin.site.register(Scores)
 admin.site.register(Users)
 
 
-class PollAdmin(admin.ModelAdmin):
-    list_display = ['question']
