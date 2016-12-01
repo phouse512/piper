@@ -7,6 +7,7 @@ from poller.models import Users
 
 # Register your models here.
 
+
 class PollAdmin(admin.ModelAdmin):
     list_display = ['question']
 

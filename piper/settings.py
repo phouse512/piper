@@ -32,7 +32,7 @@ except ImportError as e:
 SECRET_KEY = '#l(4!9c5n0!2=g8^)l_(!ztwvy$y1^hswq_411&j%46ra-$$7#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_SECURE = False
@@ -41,7 +41,7 @@ SESSION_COOKIE_DOMAIN = None
 SESSION_COOKIE_NAME = 'DSESSIONID'
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'piper.phizzle.space', 'arkaios.space', 'www.arkaios.space', 'sports.phizzle.space',
-                 'www.sports.phizzle.space']
+                 'www.sports.phizzle.space', 'phizzle.space', 'www.phizzle.space']
 
 # Application definition
 

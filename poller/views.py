@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from functools import wraps
 
-from poller.models import Poll, Answers, Votes
+from poller.models import Poll, Answers, Votes, Scores
 from poller.models import Users
 from poller.forms import SignupForm
 from poller.scoring import score_poll
@@ -79,6 +79,14 @@ def home(request, **kwargs):
 
     leaderboard_by_votes = Users.objects.annotate(num_votes=Count('votes')).order_by('-num_votes')[:10]
     recently_closed = Poll.objects.filter(open=False, finished=True).order_by('-finish_time')[:5]
+
+    trending_players = Scores.objects.raw("select u.username, s.id, sum(s.points) from poller_scores s join poller_users u "
+                                     "on s.user_id=u.id where created::DATE='2016-10-28' group by s.id, "
+                                     "u.username order by sum(points)")
+    print(trending_players)
+
+    for test in trending_players:
+        print test
 
     return render(request, 'home.html', {'polls': active_polls, 'user': login_user,
                                          'points_leaderboard': leaderboard_by_points,
