@@ -4,3 +4,10 @@ piper
 =====
 
 home automation api for life and everything in between
+
+### running tests
+run the following:
+
+`python manage.py test --testrunner=piper.testrunner.NoDbTestRunner`
+
+### deployment
