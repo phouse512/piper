@@ -20,12 +20,22 @@ try:
     import secrets
     CRON_JOB_KEY = secrets.SET_CRON_JOB_SECRET
     GITHUB_TEST_KEY = secrets.GITHUB_TEST_KEY
+
+    DB_NAME = secrets.DB_NAME
+    DB_USER = secrets.DB_USER
+    DB_PASSWORD = secrets.DB_PASSWORD
+    DB_HOST = secrets.DB_HOST
+    DB_PORT = secrets.DB_PORT
 except ImportError as e:
     print "Couldn't import secrets file, setting to defaults."
     CRON_JOB_KEY = "CRON"
     GITHUB_TEST_KEY = "GITHUB"
 
-    raise Exception("secrets file not found")
+    DB_NAME = "default"
+    DB_USER = "postgres"
+    DB_PASSWORD = "test"
+    DB_HOST = "localhost"
+    DB_PORT = ""
 
 
 # Quick-start development settings - unsuitable for production
@@ -114,11 +124,11 @@ DATABASES = {
     # },
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': secrets.DB_NAME,
-        'USER': secrets.DB_USER,
-        'PASSWORD': secrets.DB_PASSWORD,
-        'HOST': secrets.DB_HOST,
-        'PORT': secrets.DB_PORT,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     }
 }
 
