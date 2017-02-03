@@ -25,6 +25,9 @@ except ImportError as e:
     CRON_JOB_KEY = "CRON"
     GITHUB_TEST_KEY = "GITHUB"
 
+    raise Exception("secrets file not found")
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -111,11 +114,11 @@ DATABASES = {
     # },
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'piperdb',
-        'USER': 'phil',
-        'PASSWORD': 'house',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': secrets.DB_NAME,
+        'USER': secrets.DB_USER,
+        'PASSWORD': secrets.DB_PASSWORD,
+        'HOST': secrets.DB_HOST,
+        'PORT': secrets.DB_PORT,
     }
 }
 
