@@ -46,6 +46,7 @@ class EventAttendance(models.Model):
     first_time = models.IntegerField(default=0)
     attendee = models.ForeignKey(Attendee)
     event = models.ForeignKey(Event)
+    timestamp = models.DateTimeField(default=datetime.datetime.now)
 
 
 class Group(models.Model):
