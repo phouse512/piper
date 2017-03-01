@@ -11,5 +11,5 @@ setgid www-data
 chdir /home/phil/piper
 
 script
-	exec ../Env/piper/bin/gunicorn --error-logfile /var/log/piper/error.log --log-file /var/log/piper/piper.log --workers 3 --bind unix:/home/phil/piper/piper.sock piper.wsgi:application
+	exec ../Env/piper/bin/gunicorn --error-logfile /var/log/piper/error.log --timeout 300 --log-file /var/log/piper/piper.log --workers 3 --bind unix:/home/phil/piper/piper.sock piper.wsgi:application
 end script

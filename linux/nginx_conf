@@ -4,6 +4,8 @@ server {
     listen 80;
     server_name piper.phizzle.space;
 
+    proxy_read_timeout 300s;
+
     location = /favicon.ico { access_log off; log_not_found off; }
     location /static/ {
         root /home/phil/piper;
