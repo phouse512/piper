@@ -64,4 +64,5 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	defer messagesMu.Unlock()
 
 	messages = append(messages, string(msg.Message.Data))
+	log.Printf("Received new message: %s", string(msg.Message.Data))
 }
