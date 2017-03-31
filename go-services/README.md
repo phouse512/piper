@@ -20,3 +20,14 @@ To run, there are a couple of environment variables that must be set:
 GCLOUD_PROJECT=<google project id> PUBSUB_TOPIC=<pubsub_topic_name> ./go-services
 ```
 
+#### watch curl
+
+This is the curl used to tell the Gmail API to send push notifications to our
+pubsub setup:
+
+```
+curl -H "Content-Type: application/json" -H "Authorization: Bearer <api_key_here>"
+-X POST -d '{"topicName":
+"<topic_name>", "labelIds": ["INBOX"]}'
+https://www.googleapis.com/gmail/v1/users/me/watch | jq .
+```

@@ -65,4 +65,5 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 
 	messages = append(messages, string(msg.Message.Data))
 	log.Printf("Received new message: %s", string(msg.Message.Data))
+	log.Printf("Received ID message: %s", msg.Message.ID)
 }

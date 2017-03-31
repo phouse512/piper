@@ -6,3 +6,5 @@ db.sqlite3
 *.DS_Store
 piper/secrets.py
 go-services/go-services
+client_secrets.json
+labels.json
