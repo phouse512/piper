@@ -33,7 +33,7 @@ func main() {
 	topic, _ = client.CreateTopic(ctx, mustGetenv("PUBSUB_TOPIC"))
 
 	http.HandleFunc("/pubsub/push", pushHandler)
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8082", nil)
 }
 
 func mustGetenv(k string) string {
