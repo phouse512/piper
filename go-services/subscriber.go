@@ -19,8 +19,8 @@ import (
 var (
 	topic *pubsub.Topic
 
-	gmailService  gmail.Service
-	scriptService script.Service
+	gmailService  *gmail.Service
+	scriptService *script.Service
 
 	scriptConfig ScriptConfig
 )
@@ -60,17 +60,18 @@ func main() {
 	token.TokenType = creds.TokenResponse.TokenType
 	httpClient := config.Client(ctx, token)
 
-	gmailService, err := gmail.New(httpClient)
+	var err error
+	gmailService, err = gmail.New(httpClient)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	scriptService, err := script.New(httpClient)
+	scriptService, err = script.New(httpClient)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	handleHistory(gmailService, scriptService, "me", 6451994)
+	handleHistory("me", 6451994)
 
 	client, err := pubsub.NewClient(ctx, mustGetenv("GCLOUD_PROJECT"))
 	if err != nil {
@@ -126,7 +127,7 @@ type OauthResponse struct {
 	ClientSecret string    `json:"client_secret"`
 }
 
-func triggerScript(service *script.Service, messageId string) {
+func triggerScript(messageId string) {
 
 	new := make([]interface{}, 1)
 	new[0] = messageId
@@ -136,7 +137,7 @@ func triggerScript(service *script.Service, messageId string) {
 		Parameters: new,
 	}
 
-	resp, err := service.Scripts.Run(scriptConfig.ScriptID, &req).Do()
+	resp, err := scriptService.Scripts.Run(scriptConfig.ScriptID, &req).Do()
 	if err != nil {
 		log.Fatalf("Unable to execute Apps Script function. %v", err)
 	}
@@ -144,8 +145,8 @@ func triggerScript(service *script.Service, messageId string) {
 	log.Printf("Response: %v", string(resp.Response))
 }
 
-func handleHistory(service *gmail.Service, scriptServ *script.Service, userId string, historyId uint64) {
-	req := service.Users.History.List(userId).StartHistoryId(historyId).LabelId("Label_34").HistoryTypes("labelAdded")
+func handleHistory(userId string, historyId uint64) {
+	req := gmailService.Users.History.List(userId).StartHistoryId(historyId).LabelId("Label_34").HistoryTypes("labelAdded")
 
 	r, err := req.Do()
 	if err != nil {
@@ -158,7 +159,7 @@ func handleHistory(service *gmail.Service, scriptServ *script.Service, userId st
 		for _, m := range h.LabelsAdded {
 			log.Printf("Personal receipt added on message with id: %s", m.Message.Id)
 
-			triggerScript(scriptServ, m.Message.Id)
+			triggerScript(m.Message.Id)
 		}
 	}
 }
@@ -175,7 +176,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 
 	var history HistoryObject
 	json.Unmarshal(msg.Message.Data, &history)
-	log.Printf("Message id here: %s", history.HistoryID)
+	log.Printf("Message id here: %d", history.HistoryID)
 
-	handleHistory(&gmailService, &scriptService, "me", history.HistoryID)
+	handleHistory("me", history.HistoryID)
 }
