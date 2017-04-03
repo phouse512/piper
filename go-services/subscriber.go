@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 )
@@ -24,8 +25,6 @@ var (
 
 	scriptConfig ScriptConfig
 )
-
-const maxMessages = 10
 
 func main() {
 	log.Println("Loading credentials from JSON")
@@ -71,8 +70,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	handleHistory("me", 6451994)
-
+	//_ = handleHistory("me", 6455074)
+	/*	if result == -1 {
+			newToken := RenewToken(config, token)
+			log.Printf("New access token: %s", newToken.AccessToken)
+		}
+	*/
 	client, err := pubsub.NewClient(ctx, mustGetenv("GCLOUD_PROJECT"))
 	if err != nil {
 		log.Fatal(err)
@@ -110,6 +113,12 @@ type ScriptConfig struct {
 	ScriptID string `json:"scriptId"`
 }
 
+type RefreshToken struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
+	TokenType   string `json:"token_type"`
+}
+
 type OauthResponse struct {
 	TokenResponse struct {
 		RefreshToken string `json:"refresh_token"`
@@ -125,6 +134,33 @@ type OauthResponse struct {
 	RevokeURI    string    `json:"revoke_uri"`
 	ClientID     string    `json:"client_id"`
 	ClientSecret string    `json:"client_secret"`
+}
+
+func RenewToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
+	urlValue := url.Values{"client_id": {config.ClientID}, "client_secret": {config.ClientSecret}, "refresh_token": {token.RefreshToken}, "grant_type": {"refresh_token"}}
+
+	resp, err := http.PostForm("https://www.googleapis.com/oauth2/v4/token", urlValue)
+	if err != nil {
+		log.Panic("Error when trying to renew token %v", err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		log.Fatal("Error when trying to renew body")
+	}
+
+	var refresh_token RefreshToken
+	json.Unmarshal([]byte(body), &refresh_token)
+	log.Printf("Received new refresh token: %+v", refresh_token)
+
+	then := time.Now()
+	then = then.Add(time.Duration(refresh_token.ExpiresIn) * time.Second)
+
+	token.Expiry = then
+	token.AccessToken = refresh_token.AccessToken
+
+	return token
 }
 
 func triggerScript(messageId string) {
@@ -145,12 +181,13 @@ func triggerScript(messageId string) {
 	log.Printf("Response: %v", string(resp.Response))
 }
 
-func handleHistory(userId string, historyId uint64) {
+func handleHistory(userId string, historyId uint64) int {
 	req := gmailService.Users.History.List(userId).StartHistoryId(historyId).LabelId("Label_34").HistoryTypes("labelAdded")
 
 	r, err := req.Do()
 	if err != nil {
-		log.Fatalf("Unable to retrieve history: %v", err)
+		log.Printf("Unable to retrieve history: %v", err)
+		return -1
 	}
 
 	log.Printf("Processing %v history records...\n", len(r.History))
@@ -162,6 +199,8 @@ func handleHistory(userId string, historyId uint64) {
 			triggerScript(m.Message.Id)
 		}
 	}
+
+	return 0
 }
 
 func pushHandler(w http.ResponseWriter, r *http.Request) {
