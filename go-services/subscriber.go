@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -24,6 +25,10 @@ var (
 	scriptService *script.Service
 
 	scriptConfig ScriptConfig
+
+	mutex sync.Mutex
+
+	lastHistoryId uint64
 )
 
 func main() {
@@ -217,5 +222,11 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(msg.Message.Data, &history)
 	log.Printf("Message id here: %d", history.HistoryID)
 
-	handleHistory("me", history.HistoryID)
+	var tempHistoryId uint64
+	mutex.Lock()
+	tempHistoryId = lastHistoryId
+	lastHistoryId = history.HistoryID
+	mutex.Unlock()
+
+	handleHistory("me", tempHistoryId)
 }
