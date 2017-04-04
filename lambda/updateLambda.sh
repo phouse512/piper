@@ -1,8 +1,8 @@
 #!/bin/bash
 
-PROFILE="slater_admin"
+PROFILE="piper-go-services"
 TS="$(date +'%Y_%m_%d_%H_%M_%S')"
-REPO_PATH="slater_back"
+REPO_PATH="piper"
 ADD_PSQL=false
 ADD_BCRYPT=false
 TO_SHIFT=0
