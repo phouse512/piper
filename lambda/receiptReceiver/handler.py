@@ -7,7 +7,7 @@ s3 = boto3.resource('s3')
 def lambda_handler(event, context):
     # TODO implement
 
-    response = s3.Bucket('receipt-storage').put_object(
+    response = s3.Bucket('receipts-storage').put_object(
         Body=event['body'],
         ContentEncoding='base64',
         ContentType='application/pdf',
