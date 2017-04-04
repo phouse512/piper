@@ -1,3 +1,4 @@
+# python/django related ignores
 db.sqlite3
 *.pyc
 *.idea
@@ -6,6 +7,8 @@ db.sqlite3
 *.DS_Store
 piper/secrets.py
 
+# go-service related ignores
 go-services/go-services
 client_secrets.json
 oauth_tokens.json
+labels.json
