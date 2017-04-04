@@ -10,6 +10,7 @@ def lambda_handler(event, context):
     # TODO implement
 
     s3client.put_object(
+        Body=event['body'],
         Bucket='receipts-storage',
         ContentEncoding='base64',
         ContentType='application/pdf',
