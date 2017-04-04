@@ -62,6 +62,7 @@ func main() {
 	token.RefreshToken = creds.RefreshToken
 	token.Expiry = creds.TokenExpiry
 	token.TokenType = creds.TokenResponse.TokenType
+	log.Printf("Expiry: %v", token.Expiry)
 	httpClient := config.Client(ctx, token)
 
 	var err error
@@ -134,7 +135,7 @@ type OauthResponse struct {
 	TokenURI     string    `json:"token_uri"`
 	Scopes       []string  `json:"scopes"`
 	AccessToken  string    `json:"access_token"`
-	TokenExpiry  time.Time `json:"token_expirty"`
+	TokenExpiry  time.Time `json:"token_expiry"`
 	RefreshToken string    `json:"refresh_token"`
 	RevokeURI    string    `json:"revoke_uri"`
 	ClientID     string    `json:"client_id"`
