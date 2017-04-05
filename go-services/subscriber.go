@@ -186,10 +186,10 @@ func triggerScript(messageId string) {
 	if err != nil {
 		log.Fatalf("Unable to execute Apps Script function. %v", err)
 	}
-	log.Printf("Response error: %v", string(resp.Error.Message))
-	for _, detail := range resp.Error.Details { 
-        	log.Printf("error detail: %v", string(detail))
-        }
+	/*log.Printf("Response error: %v", string(resp.Error.Message))
+		for _, detail := range resp.Error.Details {
+	        	log.Printf("error detail: %v", string(detail))
+	        }*/
 	log.Printf("Response: %v", string(resp.Response))
 }
 
