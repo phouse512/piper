@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     print(str(event['body']))
 
     s3client.put_object(
-        Body=base64.decodebytes(event['body']),
+        Body=base64.b64decode(event['body']),
         Bucket='receipts-storage',
         ContentType='application/pdf',
         Key='test_obj.pdf'
