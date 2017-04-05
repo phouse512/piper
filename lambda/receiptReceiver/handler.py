@@ -9,8 +9,10 @@ s3client = session.client('s3', config=boto3.session.Config(signature_version='s
 def lambda_handler(event, context):
     # TODO implement
 
+    print("body length: %d" % len(event['body']))
+
     s3client.put_object(
-        Body=base64.b64decode(event['body']),
+        Body=event['body'],
         Bucket='receipts-storage',
         ContentType='application/pdf',
         Key='test_obj.pdf'
