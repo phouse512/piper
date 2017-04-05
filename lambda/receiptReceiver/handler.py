@@ -19,5 +19,5 @@ def lambda_handler(event, context):
     return {
         'statusCode': 200,
         'headers': {},
-        'body': ''
+        'body': 'this is a really neat test'
     }
