@@ -180,11 +180,13 @@ func triggerScript(messageId string) {
 		Parameters: new,
 	}
 
+	log.Printf("calling script with name: %s", scriptConfig.ScriptID)
+
 	resp, err := scriptService.Scripts.Run(scriptConfig.ScriptID, &req).Do()
 	if err != nil {
 		log.Fatalf("Unable to execute Apps Script function. %v", err)
 	}
-
+	log.printf("Response code: %s", resp.Response.Status)
 	log.Printf("Response: %v", string(resp.Response))
 }
 
