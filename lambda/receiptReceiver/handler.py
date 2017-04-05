@@ -13,6 +13,7 @@ def lambda_handler(event, context):
     print("first part of string: %s" % event['body'][:100])
 
     print(event)
+    print(str(event['body']))
 
     s3client.put_object(
         Body=event['body'],
