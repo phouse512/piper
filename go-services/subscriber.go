@@ -170,6 +170,7 @@ func RenewToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
 }
 
 func triggerScript(messageId string) {
+	log.Printf("Call App Script with messageId: %s", messageId)
 
 	new := make([]interface{}, 1)
 	new[0] = messageId
