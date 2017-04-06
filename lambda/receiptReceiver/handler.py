@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from pytz import timezone
 
-session = boto3.session.Session(region_name='us-east-1')
+session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
 
