@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     current_date = datetime.now().replace(tzinfo=pytz.UTC)
     date_string = current_date.astimezone(timezone('US/Pacific')).strftime("%b-%y")
 
-    s3_key = "%s/%s.pdf" % (date_string, uuid.uuid4())
+    s3_key = "%s/%s.pdf" % (date_string.lower(), uuid.uuid4())
 
     s3client.put_object(
         Body=base64.b64decode(event['body']),
