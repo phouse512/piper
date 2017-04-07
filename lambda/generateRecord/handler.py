@@ -55,7 +55,7 @@ def lambda_handler(event, context):
     client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
 
     client.messages.create(
-        to="+4403343916",
+        to="+14403343916",
         from_="+14407323016",
         body="Received personal receipt, can you help classify?",
         media_url=s3_url
