@@ -32,7 +32,7 @@ def lambda_handler(event, context):
         print("S3_key not attached to input body")
         return {
             'statusCode': 400,
-            'header': {},
+            'headers': {},
             'body': json.dumps({'message': 'request body did not include s3_key as key'})
         }
 
@@ -52,7 +52,7 @@ def lambda_handler(event, context):
         }
     )
 
-    client = TwilioRestClient(os.environ['twilio_account'], os.environ['twilio_token'])
+    client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
 
     client.messages.create(
         to="+4403343916",
