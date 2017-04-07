@@ -43,6 +43,7 @@ def lambda_handler(event, context):
     insert_record_query = "INSERT INTO records (s3_key) values (%s) RETURNING id"
     cursor.execute(insert_record_query, (s3_key,))
     new_id = cursor.fetchone()[0]
+    connection.commit()
 
     s3_url = s3client.generate_presigned_url(
         ClientMethod='get_object',
