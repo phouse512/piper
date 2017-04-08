@@ -97,6 +97,7 @@ def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
 
 
 def lambda_handler(event, context):
+    print(event['body'])
 
     try:
         input_object = json.loads(event['body'])
