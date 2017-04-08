@@ -140,7 +140,7 @@ def lambda_handler(event, context):
 
     elif current_state.state == 'sent_pdf':
         print("sent pdf state")
-        print(event(['body']))
+        print(event['body'])
     elif current_state.state == 'received_from':
         print("sent received from")
     elif current_state.state == 'received_to':
