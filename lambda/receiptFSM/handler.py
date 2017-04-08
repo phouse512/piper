@@ -98,6 +98,16 @@ def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
 
 def lambda_handler(event, context):
 
+    try:
+        input_object = json.loads(event['body'])
+    except TypeError as e:
+        print("Caught error while trying to decode object: %s" % event['body'])
+        return {
+            'statusCode': 400,
+            'headers': {},
+            'body': json.dumps({'message': 'request body was not parseable json'})
+        }
+
     client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
 
     connection = psycopg2.connect(database=os.environ['db'],
@@ -113,13 +123,28 @@ def lambda_handler(event, context):
     current_state = State.from_db_row(cursor.fetchone())
 
     if current_state.state == 'idle':
+        if 'record_id' not in input_object:
+            return {
+                'statusCode': 400,
+                'headers': {},
+                'body': json.dumps({'message': 'record_id not included for idle state'})
+            }
+
+        to_sent_pdf(int(input_object['record_id']), current_state, cursor, connection, client)
+
+        return {
+            'statusCode': 200,
+            'headers': {},
+            'body': json.dumps({'message': 'Successfully notified.'})
+        }
 
     elif current_state.state == 'sent_pdf':
-
+        print("sent pdf state")
+        print(event(['body']))
     elif current_state.state == 'received_from':
-
+        print("sent received from")
     elif current_state.state == 'received_to':
-
+        print("received_do")
     else:
         print('invalid state')
 
