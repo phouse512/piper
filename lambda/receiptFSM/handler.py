@@ -86,7 +86,7 @@ def to_received(text_message, current_state, cursor, connection):
 
     balance_id = balance_result[0]
     insert_from_query = "INSERT INTO credits (balance_id, record_id, value, type) values " \
-                        "(%s, %s, %s)"
+                        "(%s, %s, %s, %s)"
     cursor.execute(insert_from_query, (balance_id, current_state.record_id, 0, 'from'))
     connection.commit()
 
