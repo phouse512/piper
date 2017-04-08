@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import psycopg2
+import twilio.twiml
 import urlparse
 
 from datetime import datetime
@@ -10,7 +11,7 @@ from twilio.rest import Client
 session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
-STATES = ['idle', 'sent_pdf', 'received_from', 'received_to']
+STATES = ['idle', 'sent_pdf', 'received_from', 'received_to', 'received_cost']
 
 
 def get_next(current):
@@ -63,6 +64,34 @@ def advance_state(current_state, cursor, connection, record_id=None):
                           "(%s, %s, %s, %s)"
     cursor.execute(advance_state_query, (current_state.user_id, next_state, record_id, current_state.phone,))
     connection.commit()
+
+
+def to_received(text_message, current_state, cursor, connection):
+    """
+
+    :param text_message: string representing incoming text
+    :param current_state: State object that represents current fsm state
+    :param cursor: psycopg2 cursor
+    :param connection: psycopg2 connection
+    :return: string of message to respond with
+    """
+
+    balance_query = "select id, name from balances where lower(name)=lower(%s) limit 1"
+    cursor.execute(balance_query, (text_message,))
+    balance_result = cursor.fetchone()
+
+    if not balance_result:
+        return "Account: %s not found, try again?" % text_message
+
+    balance_id = balance_result[0]
+    insert_from_query = "INSERT INTO credits (balance_id, record_id, value, type) values " \
+                        "(%s, %s, %s)"
+    cursor.execute(insert_from_query, (balance_id, current_state.record_id, 0, 'from'))
+    connection.commit()
+
+    advance_state(current_state, cursor, connection, current_state.record_id)
+
+    return "Thanks, now where is this money going to?"
 
 
 def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
@@ -154,17 +183,28 @@ def lambda_handler(event, context):
         }
 
     elif current_state.state == 'sent_pdf':
-        print("sent pdf state")
-        print(input_object['Body'][0])
+        text_message_return = to_received(input_object['Body'][0], current_state, cursor, connection)
+
     elif current_state.state == 'received_from':
         print("sent received from")
+        text_message_return = "at received_from"
     elif current_state.state == 'received_to':
         print("received_do")
+        text_message_return = "received to"
     else:
-        print('invalid state')
+        return {
+            'statusCode': 400,
+            'headers': {},
+            'body': json.dumps({'message': 'invalid state..'})
+        }
+
+    resp = twilio.twiml.Response()
+    resp.message(text_message_return)
 
     return {
         'statusCode': 200,
-        'headers': {},
-        'body': 'this is a really neat test'
+        'headers': {
+            'Content-Type': 'application/xml'
+        },
+        'body': str(resp)
     }
