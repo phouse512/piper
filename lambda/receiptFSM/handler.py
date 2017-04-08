@@ -81,7 +81,7 @@ def to_idle(text_message, current_state, cursor, connection):
     cursor.execute(update_record_name, (text_message, current_state.record_id,))
     connection.commit()
 
-    advance_state(current_state, cursor, connection, current_state.record_id)
+    advance_state(current_state, cursor, connection, -1)
 
     return "We're all set and your expense has been tracked. Thanks!"
 
