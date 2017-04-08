@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import psycopg2
+import urlparse
 
 from datetime import datetime
 from twilio.rest import Client
@@ -99,15 +100,28 @@ def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
 def lambda_handler(event, context):
     print(event['body'])
 
-    try:
-        input_object = json.loads(event['body'])
-    except TypeError as e:
-        print("Caught error while trying to decode object: %s" % event['body'])
-        return {
-            'statusCode': 400,
-            'headers': {},
-            'body': json.dumps({'message': 'request body was not parseable json'})
-        }
+    # logic to determine if coming from generateRecord or twilio
+    if 'Piper-Internal' in event['headers'] and event['headers']['Piper-Internal'] == 'true':
+        try:
+            input_object = json.loads(event['body'])
+        except TypeError as e:
+            print("Caught error while trying to decode object: %s" % event['body'])
+            return {
+                'statusCode': 400,
+                'headers': {},
+                'body': json.dumps({'message': 'request body was not parseable json'})
+            }
+    else:
+        # this is coming from twilio, parse as query params
+        try:
+            input_object = urlparse.parse_qs(event['body'])
+        except Exception as e:
+            print("Caught error while trying to url parse object: %s" % event['body'])
+            return {
+                'statusCode': 400,
+                'headers': {},
+                'body': json.dumps({'message': 'request body was not parseable query params'})
+            }
 
     client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
 
@@ -141,7 +155,7 @@ def lambda_handler(event, context):
 
     elif current_state.state == 'sent_pdf':
         print("sent pdf state")
-        print(event['body'])
+        print(input_object['Body'][0])
     elif current_state.state == 'received_from':
         print("sent received from")
     elif current_state.state == 'received_to':
