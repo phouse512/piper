@@ -7,6 +7,7 @@ import urlparse
 from datetime import datetime
 from twilio.rest import Client
 from twilio.twiml.messaging_response import Message
+from twilio.twiml.messaging_response import MessagingResponse
 
 session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
@@ -201,10 +202,13 @@ def lambda_handler(event, context):
     resp = Message()
     resp.body(text_message_return)
 
+    response = MessagingResponse()
+    response.message(resp)
+
     return {
         'statusCode': 200,
         'headers': {
             'Content-Type': 'application/xml'
         },
-        'body': str(resp)
+        'body': str(response)
     }
