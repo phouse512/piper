@@ -67,7 +67,82 @@ def advance_state(current_state, cursor, connection, record_id=None):
     connection.commit()
 
 
-def to_received(text_message, current_state, cursor, connection):
+def to_idle(text_message, current_state, cursor, connection):
+    """
+
+    :param text_message: string representing incoming text
+    :param current_state: State object that represents current fsm state
+    :param cursor: psycopg2 cursor
+    :param connection: psycopg2 connection
+    :return: string of message to respond with
+    """
+
+    update_record_name = "update records set name=%s where id=%s"
+    cursor.execute(update_record_name, (text_message, current_state.record_id,))
+    connection.commit()
+
+    advance_state(current_state, cursor, connection, current_state.record_id)
+
+    return "We're all set and your expense has been tracked. Thanks!"
+
+
+def to_received_cost(text_message, current_state, cursor, connection):
+    """
+
+    :param text_message: string representing incoming text
+    :param current_state: State object that represents current fsm state
+    :param cursor: psycopg2 cursor
+    :param connection: psycopg2 connection
+    :return: string of message to respond with
+    """
+
+    try:
+        value_charge = abs(float(text_message))
+    except ValueError as e:
+        print("Could not convert object %s to dollar value." % text_message)
+        return "Please enter a valid decimal amount"
+
+    from_credits_query = "update credits set value=%s where record_id=%s and type='from'"
+    to_credits_query = "update credits set value=%s where record_id=%s and type='to'"
+
+    cursor.execute(from_credits_query, (-1*value_charge, current_state.record_id,))
+    cursor.execute(to_credits_query, (value_charge, current_state.record_id,))
+    connection.commit()
+
+    advance_state(current_state, cursor, connection, current_state.record_id)
+
+    return "Super, now what would you like to call this expense?"
+
+
+def to_received_to(text_message, current_state, cursor, connection):
+    """
+
+    :param text_message: string representing incoming text
+    :param current_state: State object that represents current fsm state
+    :param cursor: psycopg2 cursor
+    :param connection: psycopg2 connection
+    :return: string of message to respond with
+    """
+
+    balance_query = "select id, name from balances where lower(name)=lower(%s) limit 1"
+    cursor.execute(balance_query, (text_message,))
+    balance_result = cursor.fetchone()
+
+    if not balance_result:
+        return "Account: %s not found, try again?" % text_message
+
+    balance_id = balance_result[0]
+    insert_to_query = "INSERT INTO credits (balance_id, record_id, value, type) values " \
+                      "(%s, %s, %s, %s)"
+    cursor.execute(insert_to_query, (balance_id, current_state.record_id, 0, 'to'))
+    connection.commit()
+
+    advance_state(current_state, cursor, connection, current_state.record_id)
+
+    return "Awesome, now how much money was spent?"
+
+
+def to_received_from(text_message, current_state, cursor, connection):
     """
 
     :param text_message: string representing incoming text
@@ -133,6 +208,7 @@ def lambda_handler(event, context):
     # logic to determine if coming from generateRecord or twilio
     if 'Piper-Internal' in event['headers'] and event['headers']['Piper-Internal'] == 'true':
         try:
+            message_type = 'internal'
             input_object = json.loads(event['body'])
         except TypeError as e:
             print("Caught error while trying to decode object: %s" % event['body'])
@@ -144,6 +220,7 @@ def lambda_handler(event, context):
     else:
         # this is coming from twilio, parse as query params
         try:
+            message_type = 'twilio'
             input_object = urlparse.parse_qs(event['body'])
         except Exception as e:
             print("Caught error while trying to url parse object: %s" % event['body'])
@@ -169,11 +246,20 @@ def lambda_handler(event, context):
 
     if current_state.state == 'idle':
         if 'record_id' not in input_object:
-            return {
-                'statusCode': 400,
-                'headers': {},
-                'body': json.dumps({'message': 'record_id not included for idle state'})
-            }
+            if message_type == 'internal':
+                return {
+                    'statusCode': 400,
+                    'headers': {},
+                    'body': json.dumps({'message': 'record_id not included for idle state'})
+                }
+            else:
+                response = MessagingResponse()
+                response.message(body="Sorry, there is no receipt to classify now")
+                return {
+                    'statusCode': 200,
+                    'headers': {'Content-Type': 'application/xml'},
+                    'body': str(response)
+                }
 
         to_sent_pdf(int(input_object['record_id']), current_state, cursor, connection, client)
 
@@ -184,23 +270,23 @@ def lambda_handler(event, context):
         }
 
     elif current_state.state == 'sent_pdf':
-        text_message_return = to_received(input_object['Body'][0], current_state, cursor, connection)
+        text_message_return = to_received_from(input_object['Body'][0], current_state, cursor, connection)
 
     elif current_state.state == 'received_from':
-        print("sent received from")
-        text_message_return = "at received_from"
+        text_message_return = to_received_to(input_object['Body'][0], current_state, cursor, connection)
+
     elif current_state.state == 'received_to':
-        print("received_do")
-        text_message_return = "received to"
+        text_message_return = to_received_cost(input_object['Body'][0], current_state, cursor, connection)
+
+    elif current_state.state == 'received_cost':
+        text_message_return = to_idle(input_object['Body'][0], current_state, cursor, connection)
+
     else:
         return {
             'statusCode': 400,
             'headers': {},
             'body': json.dumps({'message': 'invalid state..'})
         }
-
-    # resp = Message()
-    # resp.body(text_message_return)
 
     response = MessagingResponse()
     response.message(body=text_message_return)
