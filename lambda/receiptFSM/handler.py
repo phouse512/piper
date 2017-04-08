@@ -198,8 +198,8 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': 'invalid state..'})
         }
 
-    resp = twilio.twiml.TwiML()
-    resp.message(text_message_return)
+    resp = twilio.twiml.messaging_response.Message()
+    resp.body(text_message_return)
 
     return {
         'statusCode': 200,
