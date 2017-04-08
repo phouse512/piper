@@ -198,7 +198,7 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': 'invalid state..'})
         }
 
-    resp = twilio.twiml.Response()
+    resp = twilio.twiml.TwiML()
     resp.message(text_message_return)
 
     return {
