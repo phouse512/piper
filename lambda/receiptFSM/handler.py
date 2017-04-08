@@ -199,11 +199,11 @@ def lambda_handler(event, context):
             'body': json.dumps({'message': 'invalid state..'})
         }
 
-    resp = Message()
-    resp.body(text_message_return)
+    # resp = Message()
+    # resp.body(text_message_return)
 
     response = MessagingResponse()
-    response.message(resp)
+    response.message(body=text_message_return)
 
     return {
         'statusCode': 200,
