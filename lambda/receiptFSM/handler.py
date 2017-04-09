@@ -259,7 +259,7 @@ def lambda_handler(event, context):
         messages = queue.receive_messages(MaxNumberOfMessages=1)
 
         if len(messages) < 1:
-            response.message(Body="No ongoing receipts to classify!")
+            response.message(body="No ongoing receipts to classify!")
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/xml'},
