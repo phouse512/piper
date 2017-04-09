@@ -8,6 +8,9 @@ from twilio.rest import Client
 session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
+sqs = boto3.resource('sqs')
+queue = sqs.get_queue_by_name(QueueName='receiptQueue')
+
 
 def lambda_handler(event, context):
 
@@ -53,14 +56,17 @@ def lambda_handler(event, context):
         }
     )
 
-    client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
-
-    client.messages.create(
-        to="+14403343916",
-        from_="+14407323016",
-        body="Received personal receipt, can you help classify?",
-        media_url=s3_url
-    )
+    response = queue.send_message(MessageBody=json.dumps({'record_id': new_id}))
+    print(response)
+    
+    # client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
+    #
+    # client.messages.create(
+    #     to="+14403343916",
+    #     from_="+14407323016",
+    #     body="Received personal receipt, can you help classify?",
+    #     media_url=s3_url
+    # )
 
     return {
         'statusCode': 200,
