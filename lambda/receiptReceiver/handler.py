@@ -30,8 +30,9 @@ def lambda_handler(event, context):
         Key=s3_key
     )
 
+    headers = {'x-api-key': 'oZ67x41VBhaSJ6kPX40BhaqhiDcx9DYC9AZHFX3L'}
     response = requests.post('https://o0ocplke2d.execute-api.us-east-1.amazonaws.com/prod/generate-record',
-                             data=json.dumps({'s3_key': s3_key}))
+                             data=json.dumps({'s3_key': s3_key}), headers=headers)
 
     if response.status_code >= 300:
         print(response)
