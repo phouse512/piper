@@ -195,14 +195,9 @@ def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
         }
     )
 
-    twilio_client.messages.create(
-        to=current_state.phone,
-        from_="+14407323016",
-        body="Received personal receipt, from where is this money coming from?",
-        media_url=s3_url
-    )
-
     advance_state(current_state, cursor, connection, new_record)
+
+    return "Received personal receipt, from where is this money coming from?", s3_url
 
 
 def lambda_handler(event, context):
@@ -268,13 +263,17 @@ def lambda_handler(event, context):
 
         message_body = json.loads(messages[0].body)
 
-        to_sent_pdf(int(message_body['record_id']), current_state, cursor, connection, client)
+        text_message_return, media_url = to_sent_pdf(int(message_body['record_id']), current_state, cursor, connection, client)
         messages[0].delete()
+
+        response = Message()
+        response.body(text_message_return)
+        response.media(media_url)
 
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/xml'},
-            'body': str(response)
+            'body': "<Response>%s</Response>" % str(response)
         }
 
     elif current_state.state == 'sent_pdf':
