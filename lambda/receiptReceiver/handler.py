@@ -1,7 +1,9 @@
 import base64
 import boto3
 import boto3.session
+import json
 import pytz
+import requests
 import uuid
 
 from datetime import datetime
@@ -27,6 +29,12 @@ def lambda_handler(event, context):
         ContentType='application/pdf',
         Key=s3_key
     )
+
+    response = requests.post('https://o0ocplke2d.execute-api.us-east-1.amazonaws.com/prod/generate-record',
+                             data=json.dumps({'s3_key': s3_key}))
+
+    if response.status_code >= 300:
+        raise BaseException("Could not generate record for receipt.")
     
     return {
         'statusCode': 200,

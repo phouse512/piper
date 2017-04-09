@@ -58,7 +58,7 @@ def lambda_handler(event, context):
 
     response = queue.send_message(MessageBody=json.dumps({'record_id': new_id}))
     print(response)
-    
+
     # client = Client(os.environ['twilio_account'], os.environ['twilio_token'])
     #
     # client.messages.create(
