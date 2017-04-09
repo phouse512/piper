@@ -270,12 +270,13 @@ def lambda_handler(event, context):
         response.body(text_message_return)
         response.media(media_url)
 
-        print(str(response))
+        message = MessagingResponse()
+        message.append(response)
 
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/xml'},
-            'body': "<Response>%s</Response>" % str(response)
+            'body': str(message)
         }
 
     elif current_state.state == 'sent_pdf':
