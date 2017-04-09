@@ -34,6 +34,7 @@ def lambda_handler(event, context):
                              data=json.dumps({'s3_key': s3_key}))
 
     if response.status_code >= 300:
+        print(response)
         raise BaseException("Could not generate record for receipt.")
     
     return {
