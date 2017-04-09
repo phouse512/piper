@@ -256,9 +256,9 @@ def lambda_handler(event, context):
     if current_state.state == 'idle':
 
         response = MessagingResponse()
-        message = queue.receive_messages(MaxNumberOfMessages=1)
+        messages = queue.receive_messages(MaxNumberOfMessages=1)
 
-        if len(message) < 1:
+        if len(messages) < 1:
             response.message(Body="No ongoing receipts to classify!")
             return {
                 'statusCode': 200,
@@ -266,7 +266,10 @@ def lambda_handler(event, context):
                 'body': str(response)
             }
 
-        to_sent_pdf(int(input_object['record_id']), current_state, cursor, connection, client)
+        message_body = json.loads(messages[0].body)
+
+        to_sent_pdf(int(message_body['record_id']), current_state, cursor, connection, client)
+        messages[0].delete()
 
         return {
             'statusCode': 200,
