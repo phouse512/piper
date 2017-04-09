@@ -270,6 +270,8 @@ def lambda_handler(event, context):
         response.body(text_message_return)
         response.media(media_url)
 
+        print(str(response))
+
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/xml'},
