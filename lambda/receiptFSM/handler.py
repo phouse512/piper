@@ -12,6 +12,9 @@ from twilio.twiml.messaging_response import MessagingResponse
 session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
+sqs = boto3.resource('sqs')
+queue = sqs.get_queue_by_name(QueueName='receiptQueue')
+
 STATES = ['idle', 'sent_pdf', 'received_from', 'received_to', 'received_cost']
 
 
@@ -210,6 +213,12 @@ def lambda_handler(event, context):
         try:
             message_type = 'internal'
             input_object = json.loads(event['body'])
+
+            return {
+                'statusCode': 400,
+                'headers': {},
+                'body': json.dumps({'message': 'Not supporting internal pings.'})
+            }
         except TypeError as e:
             print("Caught error while trying to decode object: %s" % event['body'])
             return {
@@ -245,28 +254,24 @@ def lambda_handler(event, context):
     current_state = State.from_db_row(cursor.fetchone())
 
     if current_state.state == 'idle':
-        if 'record_id' not in input_object:
-            if message_type == 'internal':
-                return {
-                    'statusCode': 400,
-                    'headers': {},
-                    'body': json.dumps({'message': 'record_id not included for idle state'})
-                }
-            else:
-                response = MessagingResponse()
-                response.message(body="Sorry, there is no receipt to classify now")
-                return {
-                    'statusCode': 200,
-                    'headers': {'Content-Type': 'application/xml'},
-                    'body': str(response)
-                }
+
+        response = MessagingResponse()
+        message = queue.receive_messages(MaxNumberOfMessages=1)
+
+        if len(message) < 1:
+            response.message(Body="No ongoing receipts to classify!")
+            return {
+                'statusCode': 200,
+                'headers': {'Content-Type': 'application/xml'},
+                'body': str(response)
+            }
 
         to_sent_pdf(int(input_object['record_id']), current_state, cursor, connection, client)
 
         return {
             'statusCode': 200,
-            'headers': {},
-            'body': json.dumps({'message': 'Successfully notified.'})
+            'headers': {'Content-Type': 'application/xml'},
+            'body': str(response)
         }
 
     elif current_state.state == 'sent_pdf':
