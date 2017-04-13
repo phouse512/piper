@@ -80,7 +80,7 @@ def to_idle(text_message, current_state, cursor, connection):
     :return: string of message to respond with
     """
 
-    update_record_name = "update records set name=%s where id=%s"
+    update_record_name = "update records set name=%s, labeled=true where id=%s"
     cursor.execute(update_record_name, (text_message, current_state.record_id,))
     connection.commit()
 
