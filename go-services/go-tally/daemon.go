@@ -123,7 +123,6 @@ func monitor() {
 			flushCounters()
 			flushGauges()
 		case s := <-In:
-			log.Printf("Test: %v", s)
 			readMessage(s)
 			log.Printf("counters size: %d", len(counters))
 		}
