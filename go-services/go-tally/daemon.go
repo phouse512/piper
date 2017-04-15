@@ -68,6 +68,28 @@ func parsePacket(message string) (*DataPoint, error) {
 	return &DataPoint{Key: results[1], Value: value, Type: results[0], Time: time.Now()}, nil
 }
 
+func flushGauges() {
+	stmt, err := db.Prepare(`INSERT INTO gauges (key, value, created_at) VALUES ($1, $2, to_timestamp($3))`)
+	if err != nil {
+		log.Fatal("Couldn't prepare gauges sql:", err)
+	}
+
+	mutex.Lock()
+	tmp := make([]*DataPoint, len(gauges))
+	copy(tmp, gauges)
+	gauges = nil
+	mutex.Unlock()
+
+	for _, packet := range tmp {
+		_, err = stmt.Exec(packet.Key, packet.Value, packet.Time.Unix())
+		if err != nil {
+			log.Fatal("Error inserting row: ", err)
+		}
+	}
+
+	log.Printf("Flushed %d gauges to DB", len(tmp))
+}
+
 func flushCounters() {
 	stmt, err := db.Prepare(`INSERT INTO counters (key, value, created_at) VALUES ($1, $2, to_timestamp($3))`)
 	if err != nil {
@@ -87,10 +109,8 @@ func flushCounters() {
 			log.Fatal("Error inserting row: ", err)
 		}
 	}
-}
 
-func processCounters() {
-
+	log.Printf("Flushed %d counters to DB", len(tmp))
 }
 
 func monitor() {
@@ -99,8 +119,9 @@ func monitor() {
 	for {
 		select {
 		case <-ticker.C:
-			log.Print("Ticker wheee")
+			log.Print("time to flush")
 			flushCounters()
+			flushGauges()
 		case s := <-In:
 			log.Printf("Test: %v", s)
 			readMessage(s)
