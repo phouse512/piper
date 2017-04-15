@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	_ "github.com/lib/pq"
 	"io"
 	"io/ioutil"
 	"log"
@@ -24,6 +27,10 @@ var (
 	gauges        = make([]*DataPoint, 0)
 	counters      = make([]*DataPoint, 0)
 	re            = regexp.MustCompile(`\r?\n`)
+)
+
+var (
+	db *sql.DB
 )
 
 type DBConfig struct {
@@ -61,6 +68,10 @@ func parsePacket(message string) (*DataPoint, error) {
 
 func flush() int {
 	return 5
+}
+
+func processCounters() {
+
 }
 
 func monitor() {
@@ -146,6 +157,12 @@ func main() {
 
 	var dbConfig DBConfig
 	json.Unmarshal(file, &dbConfig)
+
+	db_string := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable", dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.Database)
+	db, err = sql.Open("postgres", db_string)
+	if err != nil {
+		log.Fatalf("Couldn't open a connection to the database.")
+	}
 
 	go tcpListener()
 	monitor()
