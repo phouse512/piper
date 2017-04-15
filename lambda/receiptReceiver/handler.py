@@ -4,17 +4,21 @@ import boto3.session
 import json
 import pytz
 import requests
+import time
 import uuid
 
 from datetime import datetime
 from pytz import timezone
+from tallyclient import TallyClient
 
 session = boto3.session.Session(region_name='us-west-1')
 s3client = session.client('s3', config=boto3.session.Config(signature_version='s3v4'))
 
+client = TallyClient("piper.phizzle.space")
+
 
 def lambda_handler(event, context):
-
+    start_time = time.time()
     print("body length: %d" % len(event['body']))
     print("first part of string: %s" % event['body'][:100])
 
@@ -35,9 +39,15 @@ def lambda_handler(event, context):
                              data=json.dumps({'s3_key': s3_key}), headers=headers)
 
     if response.status_code >= 300:
-        print(response)
+        print(response.status_code)
+        end_time = time.time()
+        client.gauge('piper.receiptReceiver.responseTime', int((end_time-start_time) * 1000))
+        client.count('piper.receiptReceiver.%s' % response.status_code)
         raise BaseException("Could not generate record for receipt.")
-    
+
+    end_time = time.time()
+    client.gauge('piper.receiptReceiver.responseTime', int((end_time-start_time) * 1000))
+    client.count('piper.receiptReceiver.200')
     return {
         'statusCode': 200,
         'headers': {},

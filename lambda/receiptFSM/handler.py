@@ -2,9 +2,11 @@ import boto3
 import json
 import os
 import psycopg2
+import time
 import urlparse
 
 from datetime import datetime
+from tallyclient import TallyClient
 from twilio.rest import Client
 from twilio.twiml.messaging_response import Message
 from twilio.twiml.messaging_response import MessagingResponse
@@ -16,6 +18,7 @@ sqs = boto3.resource('sqs')
 queue = sqs.get_queue_by_name(QueueName='receiptQueue')
 
 STATES = ['idle', 'sent_pdf', 'received_from', 'received_to', 'received_cost']
+tally = TallyClient('piper.phizzle.space')
 
 
 def get_next(current):
@@ -201,6 +204,7 @@ def to_sent_pdf(new_record, current_state, cursor, connection, twilio_client):
 
 
 def lambda_handler(event, context):
+    start_time = time.time()
     print(event['body'])
 
     # logic to determine if coming from generateRecord or twilio
@@ -209,12 +213,18 @@ def lambda_handler(event, context):
             message_type = 'internal'
             input_object = json.loads(event['body'])
 
+            end_time = time.time()
+            tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+            tally.count("piper.receiptFSM.400")
             return {
                 'statusCode': 400,
                 'headers': {},
                 'body': json.dumps({'message': 'Not supporting internal pings.'})
             }
         except TypeError as e:
+            end_time = time.time()
+            tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+            tally.count("piper.receiptFSM.400")
             print("Caught error while trying to decode object: %s" % event['body'])
             return {
                 'statusCode': 400,
@@ -227,6 +237,9 @@ def lambda_handler(event, context):
             message_type = 'twilio'
             input_object = urlparse.parse_qs(event['body'])
         except Exception as e:
+            end_time = time.time()
+            tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+            tally.count("piper.receiptFSM.400")
             print("Caught error while trying to url parse object: %s" % event['body'])
             return {
                 'statusCode': 400,
@@ -255,6 +268,10 @@ def lambda_handler(event, context):
 
         if len(messages) < 1:
             response.message(body="No ongoing receipts to classify!")
+
+            end_time = time.time()
+            tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+            tally.count("piper.receiptFSM.200")
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/xml'},
@@ -273,6 +290,9 @@ def lambda_handler(event, context):
         message = MessagingResponse()
         message.append(response)
 
+        end_time = time.time()
+        tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+        tally.count("piper.receiptFSM.200")
         return {
             'statusCode': 200,
             'headers': {'Content-Type': 'application/xml'},
@@ -292,6 +312,9 @@ def lambda_handler(event, context):
         text_message_return = to_idle(input_object['Body'][0], current_state, cursor, connection)
 
     else:
+        end_time = time.time()
+        tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+        tally.count("piper.receiptFSM.400")
         return {
             'statusCode': 400,
             'headers': {},
@@ -301,6 +324,9 @@ def lambda_handler(event, context):
     response = MessagingResponse()
     response.message(body=text_message_return)
 
+    end_time = time.time()
+    tally.gauge("piper.receiptFSM.responseTime", int((end_time-start_time) * 1000))
+    tally.count("piper.receiptFSM.200")
     return {
         'statusCode': 200,
         'headers': {

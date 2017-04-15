@@ -2,7 +2,9 @@ import boto3
 import json
 import os
 import psycopg2
+import time
 
+from tallyclient import TallyClient
 from twilio.rest import Client
 
 session = boto3.session.Session(region_name='us-west-1')
@@ -10,10 +12,11 @@ s3client = session.client('s3', config=boto3.session.Config(signature_version='s
 
 sqs = boto3.resource('sqs')
 queue = sqs.get_queue_by_name(QueueName='receiptQueue')
+client = TallyClient('piper.phizzle.space', port=8173)
 
 
 def lambda_handler(event, context):
-
+    start_time = time.time()
     connection = psycopg2.connect(database=os.environ['db'],
                                   user=os.environ['user'],
                                   password=os.environ['password'],
@@ -25,6 +28,9 @@ def lambda_handler(event, context):
         input_object = json.loads(event['body'])
     except TypeError as e:
         print("Caught error while trying to decode object: %s" % event['body'])
+        end_time = time.time()
+        client.gauge('piper.generateRecord.responseTime', int((end_time-start_time) * 1000))
+        client.count('piper.generateRecord.400')
         return {
             'statusCode': 400,
             'headers': {},
@@ -32,6 +38,9 @@ def lambda_handler(event, context):
         }
 
     if 's3_key' not in input_object:
+        end_time = time.time()
+        client.gauge('piper.generateRecord.responseTime', int((end_time-start_time) * 1000))
+        client.count('piper.generateRecord.400')
         print("S3_key not attached to input body")
         return {
             'statusCode': 400,
@@ -67,7 +76,9 @@ def lambda_handler(event, context):
     #     body="Received personal receipt, can you help classify?",
     #     media_url=s3_url
     # )
-
+    end_time = time.time()
+    client.gauge('piper.generateRecord.responseTime', int((end_time-start_time) * 1000))
+    client.count('piper.generateRecord.200')
     return {
         'statusCode': 200,
         'headers': {},
