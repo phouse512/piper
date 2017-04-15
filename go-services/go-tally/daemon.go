@@ -3,10 +3,14 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
 	"net"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,10 +19,11 @@ const (
 )
 
 var (
-	In            = make(chan *string, MAX_UNPROCESSED_PACKETS)
+	In            = make(chan *DataPoint, MAX_UNPROCESSED_PACKETS)
 	flushInterval = int64(30)
-	gauges        = make([]string, 1000)
-	counters      = make([]string, 1000)
+	gauges        = make([]*DataPoint, 0)
+	counters      = make([]*DataPoint, 0)
+	re            = regexp.MustCompile(`\r?\n`)
 )
 
 type DBConfig struct {
@@ -26,6 +31,36 @@ type DBConfig struct {
 	User     string `json:"user"`
 	Database string `json:"database"`
 	Password string `json:"password"`
+}
+
+type DataPoint struct {
+	Key   string
+	Value int64
+	Type  string
+	Time  time.Time
+}
+
+func parsePacket(message string) (*DataPoint, error) {
+	results := strings.Split(message, ":")
+
+	if len(results) != 3 {
+		return nil, errors.New("improperly formatted message")
+	}
+
+	if !(results[0] == "c" || results[0] == "g") {
+		return nil, errors.New("invalid data-type specified")
+	}
+
+	value, err := strconv.ParseInt(results[2], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DataPoint{Key: results[1], Value: value, Type: results[0], Time: time.Now()}, nil
+}
+
+func flush() int {
+	return 5
 }
 
 func monitor() {
@@ -36,16 +71,27 @@ func monitor() {
 		case <-ticker.C:
 			log.Print("Ticker wheee")
 		case s := <-In:
-			log.Printf("Test: %s", s)
+			log.Printf("Test: %v", s)
+			readMessage(s)
+			log.Printf("counters size: %d", len(counters))
 		}
 	}
 }
 
-func handleMessage(conn io.ReadCloser, partialReads bool, out chan<- *string) {
+func readMessage(dp *DataPoint) {
+	if dp.Type == "g" {
+		gauges = append(gauges, dp)
+	} else if dp.Type == "c" {
+		counters = append(counters, dp)
+	}
+}
+
+func handleMessage(conn io.ReadCloser, partialReads bool, out chan<- *DataPoint) {
 	defer conn.Close()
 	reader := bufio.NewReader(conn)
 
 	for {
+
 		message, err := reader.ReadString('\n')
 		log.Printf("incoming message: %s", message)
 
@@ -57,6 +103,15 @@ func handleMessage(conn io.ReadCloser, partialReads bool, out chan<- *string) {
 		if err != nil {
 			break
 		}
+
+		cleanedMsg := re.ReplaceAllString(message, "")
+		result, err := parsePacket(cleanedMsg)
+		if err != nil {
+			log.Print("invalid message given with error ", message, err)
+			break
+		}
+
+		out <- result
 	}
 }
 
