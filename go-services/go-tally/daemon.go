@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -27,6 +28,7 @@ var (
 	gauges        = make([]*DataPoint, 0)
 	counters      = make([]*DataPoint, 0)
 	re            = regexp.MustCompile(`\r?\n`)
+	mutex         = &sync.Mutex{}
 )
 
 var (
@@ -66,8 +68,25 @@ func parsePacket(message string) (*DataPoint, error) {
 	return &DataPoint{Key: results[1], Value: value, Type: results[0], Time: time.Now()}, nil
 }
 
-func flush() int {
-	return 5
+func flushCounters() {
+	stmt, err := db.Prepare(`INSERT INTO counters (key, value, created_at) VALUES ($1, $2, to_timestamp($3))`)
+	if err != nil {
+		log.Fatal("Couldn't prepare counter sql:", err)
+	}
+
+	mutex.Lock()
+	tmp := make([]*DataPoint, len(counters))
+	copy(tmp, counters)
+	counters = nil
+	mutex.Unlock()
+
+	// copy to temp array and clear
+	for _, packet := range tmp {
+		_, err = stmt.Exec(packet.Key, packet.Value, packet.Time.Unix())
+		if err != nil {
+			log.Fatal("Error inserting row: ", err)
+		}
+	}
 }
 
 func processCounters() {
@@ -81,6 +100,7 @@ func monitor() {
 		select {
 		case <-ticker.C:
 			log.Print("Ticker wheee")
+			flushCounters()
 		case s := <-In:
 			log.Printf("Test: %v", s)
 			readMessage(s)
