@@ -11,6 +11,7 @@ piper/secrets.py
 */gmail-subscriber/go-services
 */gmail-subscriber/gmail-subscriber
 */go-tally/go-tally
+*/alexa-bot/alexa-bot
 client_secrets.json
 oauth_tokens.json
 labels.json
