@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type AlexaResponse struct {
@@ -16,6 +18,64 @@ type AlexaResponse struct {
 			Text string `json:"text"`
 		} `json:"outputSpeech"`
 	} `json:"response"`
+}
+
+type AlexaRequest struct {
+	Version string `json:"version"`
+	Session struct {
+		New         bool   `json:"new"`
+		SessionID   string `json:"sessionId"`
+		Application struct {
+			ApplicationID string `json:"applicationId"`
+		} `json:"application"`
+		User struct {
+			UserID string `json:"userId"`
+		} `json:"user"`
+	} `json:"session"`
+	Context struct {
+		AudioPlayer struct {
+			PlayerActivity string `json:"playerActivity"`
+		} `json:"AudioPlayer"`
+		System struct {
+			Application struct {
+				ApplicationID string `json:"applicationId"`
+			} `json:"application"`
+			User struct {
+				UserID string `json:"userId"`
+			} `json:"user"`
+			Device struct {
+				DeviceID            string `json:"deviceId"`
+				SupportedInterfaces struct {
+					AudioPlayer struct {
+					} `json:"AudioPlayer"`
+				} `json:"supportedInterfaces"`
+			} `json:"device"`
+			APIEndpoint string `json:"apiEndpoint"`
+		} `json:"System"`
+	} `json:"context"`
+	Request struct {
+		Type      string    `json:"type"`
+		RequestID string    `json:"requestId"`
+		Timestamp time.Time `json:"timestamp"`
+		Locale    string    `json:"locale"`
+		Intent    struct {
+			Name               string `json:"name"`
+			ConfirmationStatus string `json:"confirmationStatus"`
+			Slots              struct {
+				TimeFrame struct {
+					Name               string `json:"name"`
+					Value              string `json:"value"`
+					ConfirmationStatus string `json:"confirmationStatus"`
+				} `json:"TimeFrame"`
+				AccountName struct {
+					Name               string `json:"name"`
+					Value              string `json:"value"`
+					ConfirmationStatus string `json:"confirmationStatus"`
+				} `json:"AccountName"`
+			} `json:"slots"`
+		} `json:"intent"`
+		DialogState string `json:"dialogState"`
+	} `json:"request"`
 }
 
 func main() {
@@ -36,9 +96,20 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// time to serialize into object
+	var request AlexaRequest
+	err = json.Unmarshal(request_body, &request)
+	if err != nil {
+		log.Fatalf("unmarshal error:", err)
+	}
+
+	var outputText = fmt.Sprintf("Hello, you asked about money spent on %s for %s",
+		request.Request.Intent.Slots.AccountName.Value,
+		request.Request.Intent.Slots.TimeFrame.Value)
+
 	response := AlexaResponse{Version: "1.0"}
 	response.Response.OutputSpeech.Type = "PlainText"
-	response.Response.OutputSpeech.Text = "Hello there, Philip"
+	response.Response.OutputSpeech.Text = outputText
 
 	log.Println("body: ", string(request_body))
 
