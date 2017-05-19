@@ -1,12 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/lib/pq"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -78,11 +81,79 @@ type AlexaRequest struct {
 	} `json:"request"`
 }
 
+type Configuration struct {
+	Host     string
+	User     string
+	Password string
+	Database string
+	Port     int
+}
+
+var config Configuration
+var db *sql.DB
+
+func init() {
+	log.Println("Loading config file from ./config.json")
+	file, e := ioutil.ReadFile("./config.json")
+	if e != nil {
+		log.Printf("File error loading config: %v", e)
+		os.Exit(1)
+	}
+
+	json.Unmarshal(file, &config)
+}
+
+func setupDb() {
+	log.Println("Setting up database with credentials")
+	var err error
+
+	db_string := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.Host, config.User, config.Password, config.Database)
+	db, err = sql.Open("postgres", db_string)
+
+	if err != nil {
+		log.Fatalf("Couldn't open a db connection successfully with error: %v", err)
+	}
+}
+
 func main() {
 	log.Println("starting server")
+	setupDb()
 
 	http.HandleFunc("/piper/", alexaHandler)
+	http.HandleFunc("/piper/spending/", getSpending)
 	http.ListenAndServe(":8081", nil)
+}
+
+/*
+* this is responsible for returning a balance for a given account and timeframe
+* 	requires query parameters @timeframe and @account
+ */
+func getSpending(w http.ResponseWriter, r *http.Request) {
+	log.Println("Received request on getSpending with params:", r.URL.Query())
+
+	timeframe := r.URL.Query().Get("timeframe")
+	account := r.URL.Query().Get("account")
+
+	log.Printf("Received timeframe: %s and account: %s", timeframe, account)
+
+	// query the account to make sure it exists
+	rows, err := db.Query("SELECT id, name, category FROM balances where name like '%' || $1 || '%'", account)
+	if err != nil {
+		log.Fatalf("Failed executing account query with error: %v", err)
+	}
+
+	for rows.Next() {
+		var id int
+		var name string
+		var category string
+		err = rows.Scan(&id, &name, &category)
+
+		fmt.Println("Received id: %d and name: %s", id, name)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 func alexaHandler(w http.ResponseWriter, r *http.Request) {

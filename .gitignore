@@ -4,6 +4,7 @@ db.sqlite3
 *.idea
 *.pyc
 *.log
+*.swp
 *.DS_Store
 piper/secrets.py
 
@@ -16,6 +17,7 @@ client_secrets.json
 oauth_tokens.json
 labels.json
 db.json
+config.json
 
 # sphinx
 test.txt
