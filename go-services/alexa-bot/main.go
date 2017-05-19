@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -135,6 +136,12 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 	timeframe := r.URL.Query().Get("timeframe")
 	account := r.URL.Query().Get("account")
 
+	if timeframe == "" || account == "" {
+		log.Println("both account and timeframe are required query parameters")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	log.Printf("Received timeframe: %s and account: %s", timeframe, account)
 
 	// query the account to make sure it exists
@@ -143,13 +150,42 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed executing account query with error: %v", err)
 	}
 
+	var id int
+	var name string
+	var category string
 	for rows.Next() {
-		var id int
-		var name string
-		var category string
 		err = rows.Scan(&id, &name, &category)
 
-		fmt.Println("Received id: %d and name: %s", id, name)
+		log.Printf("Received id: %d and name: %s", id, name)
+	}
+
+	if name == "" {
+		log.Printf("Couldn't find account with name: %s", account)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	now := time.Now()
+
+	var startTime time.Time
+	if strings.Contains(timeframe, "week") {
+		startTime = now.AddDate(0, 0, -7)
+	} else if strings.Contains(timeframe, "month") {
+		startTime = now.AddDate(0, 0, -30)
+	} else {
+		startTime = now.AddDate(0, 0, -2)
+	}
+	log.Printf("id: %d  starttime: %d", id, startTime.Unix())
+	rows, err = db.Query("SELECT sum(c.value) FROM credits c JOIN records r on r.id=c.record_id WHERE c.balance_id=$1 and created_at >= to_timestamp($2)", id, startTime.Unix())
+	if err != nil {
+		log.Fatalf("Failed executing credits query with error: %v", err)
+	}
+
+	var sum float64
+	for rows.Next() {
+		err = rows.Scan(&sum)
+
+		log.Printf("Received %d", sum)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
