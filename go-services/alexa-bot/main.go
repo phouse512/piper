@@ -82,6 +82,12 @@ type AlexaRequest struct {
 	} `json:"request"`
 }
 
+type MoneyResponse struct {
+	TimeFrame string  `json:"timeframe"`
+	Sum       float64 `json:"sum"`
+	Account   string  `json:"account_name"`
+}
+
 type Configuration struct {
 	Host     string
 	User     string
@@ -187,6 +193,10 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Received %d", sum)
 	}
+
+	response := MoneyResponse{TimeFrame: timeframe, Sum: sum, Account: name}
+	responseString, _ := json.Marshal(response)
+	io.WriteString(w, string(responseString))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
