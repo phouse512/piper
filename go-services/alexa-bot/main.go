@@ -220,6 +220,27 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("unmarshal error:", err)
 	}
 
+	req, err := http.NewRequest("GET", "http://localhost:8081/piper/spending/", nil)
+	if err != nil {
+		log.Fatal("Could not query piper spending endpoint")
+	}
+
+	q := req.URL.Query()
+	q.Add("timeframe", request.Request.Intent.Slots.TimeFrame.Value)
+	q.Add("account", request.Request.Intent.Slots.AccountName.Value)
+
+	req.URL.RawQuery = q.Encode()
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatal("Couldn't query piper successfully")
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal("couldn't read body from piper http call")
+	}
+
 	var outputText = fmt.Sprintf("Hello, you asked about money spent on %s for %s",
 		request.Request.Intent.Slots.AccountName.Value,
 		request.Request.Intent.Slots.TimeFrame.Value)
