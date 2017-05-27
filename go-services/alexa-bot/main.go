@@ -243,9 +243,19 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Println("piper spending body: ", string(body))
 
-	var outputText = fmt.Sprintf("Hello, you asked about money spent on %s for %s",
-		request.Request.Intent.Slots.AccountName.Value,
-		request.Request.Intent.Slots.TimeFrame.Value)
+	var moneyResponse MoneyResponse
+	err = json.Unmarshal(body, &moneyResponse)
+	if err != nil {
+		log.Fatalf("unmarshal error:", err)
+	}
+
+	/*
+		var outputText = fmt.Sprintf("Hello, you asked about money spent on %s for %s",
+			request.Request.Intent.Slots.AccountName.Value,
+			request.Request.Intent.Slots.TimeFrame.Value) */
+
+	var outputText = fmt.Sprintf("Hi Philip, over %s you spent %f dollars on %s",
+		moneyResponse.TimeFrame, moneyResponse.Sum, moneyResponse.Account)
 
 	response := AlexaResponse{Version: "1.0"}
 	response.Response.OutputSpeech.Type = "PlainText"
