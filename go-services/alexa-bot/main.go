@@ -241,6 +241,8 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("couldn't read body from piper http call")
 	}
 
+	log.Println("piper spending body: ", string(body))
+
 	var outputText = fmt.Sprintf("Hello, you asked about money spent on %s for %s",
 		request.Request.Intent.Slots.AccountName.Value,
 		request.Request.Intent.Slots.TimeFrame.Value)
