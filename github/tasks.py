@@ -1,6 +1,9 @@
 import datetime
 import json
 import requests
+import time
+
+from tallyclient import TallyClient
 
 # os.environ['DJANGO_SETTINGS_MODULE'] = sys.path + 'piper.settings'
 
@@ -19,6 +22,8 @@ GET_ALL_USER_REPOS_URL = "/users/%s/repos?page=%s&per_page=100"
 GET_REPO_COMMITS_URL = "/repos/%s/commits?per_page=100"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
+client = TallyClient('localhost', 8173)
+
 
 class GithubCodeActivityJob(Job):
 
@@ -30,6 +35,8 @@ class GithubCodeActivityJob(Job):
         return self.github_commit_job()
 
     def github_commit_job(self):
+        start_time = time.time()
+
         github_accounts = GithubIntegration.objects.all()
         instances = 0
         commits = 0
@@ -47,6 +54,9 @@ class GithubCodeActivityJob(Job):
             except Exception as e:
                 print e
 
+        client.count("piper.github_job")
+        end_time = time.time()
+        client.gauge("piper.github_job.responseTime", int((end_time-start_time) * 1000))
         return {
             'commits_saved': commits,
             'accounts_checked': instances,
