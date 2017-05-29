@@ -31,6 +31,6 @@ func (c *Client) Count(name string) {
 	fmt.Fprintf(c.conn, fmt.Sprintf("c:%s:%d\n", name, 1))
 }
 
-func (c *Client) Gauge(name string, val int) {
+func (c *Client) Gauge(name string, val int64) {
 	fmt.Fprintf(c.conn, fmt.Sprintf("g:%s:%d\n", name, val))
 }

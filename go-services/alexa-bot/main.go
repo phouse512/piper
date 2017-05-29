@@ -136,9 +136,6 @@ func main() {
 	log.Println("starting server")
 	setupDb()
 
-	tallyClient.Count("alexa-bot.test")
-	tallyClient.Gauge("alexa-bot.test.gauge", 234)
-
 	http.HandleFunc("/piper/", alexaHandler)
 	http.HandleFunc("/piper/spending/", getSpending)
 	http.ListenAndServe(":8081", nil)
@@ -149,6 +146,7 @@ func main() {
 * 	requires query parameters @timeframe and @account
  */
 func getSpending(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	log.Println("Received request on getSpending with params:", r.URL.Query())
 
 	timeframe := r.URL.Query().Get("timeframe")
@@ -157,6 +155,9 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 	if timeframe == "" || account == "" {
 		log.Println("both account and timeframe are required query parameters")
 		w.WriteHeader(http.StatusBadRequest)
+		tallyClient.Count("piper.alexa-bot.getSpending.400")
+		elapsed := time.Since(start)
+		tallyClient.Gauge("piper.alexa-bot.getSpending.responseTime", elapsed.Nanoseconds()/1e6)
 		return
 	}
 
@@ -165,6 +166,9 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 	// query the account to make sure it exists
 	rows, err := db.Query("SELECT id, name, category FROM balances where name like '%' || $1 || '%'", account)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.getSpending.500")
+		elapsed := time.Since(start)
+		tallyClient.Gauge("piper.alexa-bot.getSpending.responseTime", elapsed.Nanoseconds()/1e6)
 		log.Fatalf("Failed executing account query with error: %v", err)
 	}
 
@@ -180,6 +184,9 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 	if name == "" {
 		log.Printf("Couldn't find account with name: %s", account)
 		w.WriteHeader(http.StatusBadRequest)
+		tallyClient.Count("piper.alexa-bot.getSpending.400")
+		elapsed := time.Since(start)
+		tallyClient.Gauge("piper.alexa-bot.getSpending.responseTime", elapsed.Nanoseconds()/1e6)
 		return
 	}
 
@@ -196,6 +203,9 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 	log.Printf("id: %d  starttime: %d", id, startTime.Unix())
 	rows, err = db.Query("SELECT sum(c.value) FROM credits c JOIN records r on r.id=c.record_id WHERE c.balance_id=$1 and created_at >= to_timestamp($2)", id, startTime.Unix())
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.getSpending.500")
+		elapsed := time.Since(start)
+		tallyClient.Gauge("piper.alexa-bot.getSpending.responseTime", elapsed.Nanoseconds()/1e6)
 		log.Fatalf("Failed executing credits query with error: %v", err)
 	}
 
@@ -212,9 +222,13 @@ func getSpending(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	tallyClient.Count("piper.alexa-bot.getSpending.200")
+	elapsed := time.Since(start)
+	tallyClient.Gauge("piper.alexa-bot.getSpending.responseTime", elapsed.Nanoseconds()/1e6)
 }
 
 func alexaHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	log.Println("Received request: ", r.URL.Path[1:])
 	log.Println("Method type: ", r.Method)
 
@@ -222,6 +236,9 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 	request_body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		tallyClient.Count("piper.alexa-bot.alexaHandler.400")
+		elapsed := time.Since(start)
+		tallyClient.Gauge("piper.alexa-bot.alexaHandler.responseTime", elapsed.Nanoseconds()/1e6)
 		return
 	}
 
@@ -229,11 +246,13 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 	var request AlexaRequest
 	err = json.Unmarshal(request_body, &request)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.alexaHandler.500")
 		log.Fatalf("unmarshal error:", err)
 	}
 
 	req, err := http.NewRequest("GET", "http://localhost:8081/piper/spending/", nil)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.alexaHandler.500")
 		log.Fatal("Could not query piper spending endpoint")
 	}
 
@@ -244,12 +263,14 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 	req.URL.RawQuery = q.Encode()
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.alexaHandler.500")
 		log.Fatal("Couldn't query piper successfully")
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.alexaHandler.500")
 		log.Fatal("couldn't read body from piper http call")
 	}
 
@@ -258,6 +279,7 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 	var moneyResponse MoneyResponse
 	err = json.Unmarshal(body, &moneyResponse)
 	if err != nil {
+		tallyClient.Count("piper.alexa-bot.alexaHandler.500")
 		log.Fatalf("unmarshal error:", err)
 	}
 
@@ -279,4 +301,7 @@ func alexaHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, string(response_string))
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	tallyClient.Count("piper.alexa-bot.alexaHandler.200")
+	elapsed := time.Since(start)
+	tallyClient.Gauge("piper.alexa-bot.alexaHandler.responseTime", elapsed.Nanoseconds()/1e6)
 }
