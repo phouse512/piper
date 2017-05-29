@@ -1,4 +1,4 @@
-package main
+package tallyclient
 
 import (
 	"fmt"
@@ -28,9 +28,9 @@ func NewClient(host string, port int) (client *Client, error error) {
 }
 
 func (c *Client) Count(name string) {
-
+	fmt.Fprintf(c.conn, fmt.Sprintf("c:%s:%d\n", name, 1))
 }
 
-func (c *Client) Gauge(val int) {
-
+func (c *Client) Gauge(name string, val int) {
+	fmt.Fprintf(c.conn, fmt.Sprintf("g:%s:%d\n", name, val))
 }

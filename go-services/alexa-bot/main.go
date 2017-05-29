@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/phouse512/piper/go-services/tallyclient"
 	"io"
 	"io/ioutil"
 	"log"
@@ -98,8 +99,16 @@ type Configuration struct {
 
 var config Configuration
 var db *sql.DB
+var tallyClient *tallyclient.Client
 
 func init() {
+	var err error
+	tallyClient, err = tallyclient.NewClient("piper.phizzle.space", 8173)
+	if err != nil {
+		log.Printf("Couldn't connect to tally server with err: %v", err)
+		os.Exit(1)
+	}
+
 	log.Println("Loading config file from ./config.json")
 	file, e := ioutil.ReadFile("./config.json")
 	if e != nil {
@@ -126,6 +135,9 @@ func setupDb() {
 func main() {
 	log.Println("starting server")
 	setupDb()
+
+	tallyClient.Count("alexa-bot.test")
+	tallyClient.Gauge("alexa-bot.test.gauge", 234)
 
 	http.HandleFunc("/piper/", alexaHandler)
 	http.HandleFunc("/piper/spending/", getSpending)

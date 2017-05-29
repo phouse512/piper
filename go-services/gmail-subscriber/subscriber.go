@@ -4,6 +4,7 @@ import (
 	"cloud.google.com/go/pubsub"
 	"encoding/json"
 	"fmt"
+	"github.com/phouse512/piper/go-services/tallyclient"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -23,15 +24,21 @@ var (
 
 	gmailService  *gmail.Service
 	scriptService *script.Service
+	tallyClient   *tallyclient.Client
 
-	scriptConfig ScriptConfig
-
-	mutex sync.Mutex
-
+	scriptConfig  ScriptConfig
+	mutex         sync.Mutex
 	lastHistoryId uint64
 )
 
 func main() {
+	var e error
+	tallyClient, e = tallyclient.NewClient("piper.phizzle.space", 8173)
+	if e != nil {
+		log.Printf("Tally client connect failed, %v", e)
+		os.Exit(1)
+	}
+
 	log.Println("Loading credentials from JSON")
 	file, e := ioutil.ReadFile("./oauth_tokens.json")
 	if e != nil {
