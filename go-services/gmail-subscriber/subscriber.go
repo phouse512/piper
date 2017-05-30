@@ -177,6 +177,7 @@ func RenewToken(config *oauth2.Config, token *oauth2.Token) *oauth2.Token {
 }
 
 func triggerScript(messageId string) {
+	start := time.Now()
 	log.Printf("Call App Script with messageId: %s", messageId)
 
 	new := make([]interface{}, 1)
@@ -198,9 +199,14 @@ func triggerScript(messageId string) {
 	        	log.Printf("error detail: %v", string(detail))
 	        }*/
 	log.Printf("Response: %v", string(resp.Response))
+	tallyClient.Count("piper.gmail-subscriber.callAppScript")
+	end := time.Since(start)
+	tallyClient.Gauge("piper.gmail-subscriber.callAppScript.responseTime", end.Nanoseconds()/1e6)
+
 }
 
 func handleHistory(userId string, historyId uint64) int {
+	start := time.Now()
 	req := gmailService.Users.History.List(userId).StartHistoryId(historyId).LabelId("Label_34").HistoryTypes("labelAdded")
 
 	r, err := req.Do()
@@ -219,10 +225,14 @@ func handleHistory(userId string, historyId uint64) int {
 		}
 	}
 
+	tallyClient.Count("piper.gmail-subscriber.handleHistory")
+	end := time.Since(start)
+	tallyClient.Gauge("piper.gmail-subscriber.handleHistory.responseTime", end.Nanoseconds()/1e6)
 	return 0
 }
 
 func pushHandler(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
 	msg := &pushRequest{}
 	if err := json.NewDecoder(r.Body).Decode(msg); err != nil {
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
@@ -242,5 +252,8 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	lastHistoryId = history.HistoryID
 	mutex.Unlock()
 
+	tallyClient.Count("piper.gmail-subscriber.messageReceived")
 	handleHistory("me", tempHistoryId)
+	end := time.Since(start)
+	tallyClient.Gauge("piper.gmail-subscriber.messageReceived.responseTime", end.Nanoseconds()/1e6)
 }
