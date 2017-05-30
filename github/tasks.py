@@ -22,7 +22,7 @@ GET_ALL_USER_REPOS_URL = "/users/%s/repos?page=%s&per_page=100"
 GET_REPO_COMMITS_URL = "/repos/%s/commits?per_page=100"
 GET_COMMIT_FROM_SHA = "/repos/%s/commits/%s"
 
-client = TallyClient('localhost', 8173)
+client = TallyClient('piper.phizzle.space', 8173)
 
 
 class GithubCodeActivityJob(Job):
