@@ -1,5 +1,4 @@
 from django.db import models
-from djcelery.models import PeriodicTask
 
 # THIS IS DEPRECATED
 class IngesterTask(models.Model):
@@ -26,7 +25,6 @@ class IngesterJob(models.Model):
 
 
 # TODO: these might later become relevant once we try to further generalize
-# TODO: 	the ingester jobs
 class IngesterTaskParams(models.Model):
 	id = models.AutoField(primary_key=True)
 	task = models.ForeignKey(IngesterTask)
