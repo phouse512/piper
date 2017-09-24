@@ -56,10 +56,8 @@ def requires_auth(f):
 def admin_overview(request, group_hash):
     group = get_object_or_404(Group, group_hash=group_hash)
 
-    events = Event.objects.filter(group_hash=group.group_hash).order_by('date')
-
+    events = Event.objects.filter(group_hash=group.group_hash, archived=False).order_by('date')
     counts = EventAttendance.objects.values('event_id').annotate(event_count=Count('event_id'))
-
     serializable_events = EventSerializer().serialize(events)
 
     for event in serializable_events:
