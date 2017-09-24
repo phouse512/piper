@@ -7,7 +7,6 @@ class IngesterTask(models.Model):
 	type = models.CharField(max_length=6)
 	json_selector = models.CharField(max_length=100)
 	frequency = models.CharField(max_length=30)
-	periodic_task = models.ForeignKey(PeriodicTask)
 	integration_type = models.CharField(max_length=30)
 
 	class Meta:
