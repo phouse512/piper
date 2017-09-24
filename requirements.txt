@@ -1,10 +1,8 @@
 amqp==1.4.7
 anyjson==0.3.3
 billiard==3.3.0.20
-celery==3.1.18
 decorator==3.4.0
 Django==1.8.3
-django-celery==3.1.17
 Flask==0.10.1
 Flask-Login==0.3.2
 Flask-Script==2.0.5
