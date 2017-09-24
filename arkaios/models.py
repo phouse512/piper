@@ -23,6 +23,7 @@ class Event(models.Model):
     group_hash = models.CharField(max_length=10, default="test")
     date = models.DateField(default=datetime.datetime.now)
     on = models.BooleanField(default=False)
+    archived = models.BooleanField(default=False)
 
 
 class EventSerializer(Serializer):

@@ -6,9 +6,7 @@ from django.db import models, migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('djcelery', '0001_initial'),
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -20,7 +18,6 @@ class Migration(migrations.Migration):
                 ('json_selector', models.CharField(max_length=100)),
                 ('frequency', models.CharField(max_length=30)),
                 ('integration_type', models.CharField(max_length=30)),
-                ('periodic_task', models.ForeignKey(to='djcelery.PeriodicTask')),
             ],
             options={
                 'db_table': 'ingester_task',
