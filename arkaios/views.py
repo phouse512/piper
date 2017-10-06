@@ -80,13 +80,15 @@ def csv_download(request, group_hash, event_id):
 
     fullArray = []
     fullArray.append([group.name, event.name, event.date, ""])
-    fullArray.append(['Name', 'Email', 'Year',  'First Time?'])
+    fullArray.append(['Name', 'Email', 'Year',  'ListServ?', 'First Time?'])
 
-    event_attendance = EventAttendance.objects.filter(event_id=event_id).select_related('attendee')
+    event_attendance = EventAttendance.objects.filter(event_id=event_id).select_related('attendee').order_by('-first_time')
     for record in event_attendance:
         full_name = record.attendee.first_name + " " + record.attendee.last_name
+        listserv = 'yes' if record.attendee.email_list else 'no'
+        firsttime = 'first time visitor' if record.first_time == 1 else ''
 
-        temp = [full_name.encode('utf-8').strip(), record.attendee.email, record.attendee.year, record.first_time]
+        temp = [full_name.encode('utf-8').strip(), record.attendee.email, record.attendee.year, listserv, firsttime]
         fullArray.append(temp)
 
     response = HttpResponse(content_type='text/csv')
