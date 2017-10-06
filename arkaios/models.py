@@ -14,6 +14,7 @@ class Attendee(models.Model):
     email = models.CharField(max_length=200)
     year = models.CharField(max_length=20)
     group_hash = models.CharField(max_length=10, default="test")
+    email_list = models.BooleanField(default=True)
 
 
 class Event(models.Model):

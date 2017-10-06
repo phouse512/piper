@@ -174,6 +174,8 @@ def save(request, group_hash, event_id):
     input_last_name = request.GET.get('lastName', '').strip().lower()
     input_email = request.GET.get('email', '').strip().lower()
     input_year = request.GET.get('year', '').strip().lower()
+    input_listserv = request.GET.get('listserv', 'true').strip().lower()
+    print(input_listserv)
 
     error_array = []
     if ((not input_first_name) or (not input_last_name) or (not input_email)
@@ -190,10 +192,15 @@ def save(request, group_hash, event_id):
         if not input_year:
             error_array.append("year")
 
+        if input_listserv not in ['false', 'true']:
+            error_array.append("listserv")
+
         results_dict['status'] = 'error'
         results_dict['error'] = error_array
 
         return HttpResponse(json.dumps(results_dict))
+
+    bool_listserv = input_listserv == 'true'
 
     # make sure that event is valid
     event = Event.objects.filter(id=event_id, on=True)
@@ -216,7 +223,8 @@ def save(request, group_hash, event_id):
             email=input_email,
             first_name=input_first_name,
             last_name=input_last_name,
-            year=input_year
+            year=input_year,
+            email_list=bool_listserv
         )
 
         new_attendance = EventAttendance.objects.create(
@@ -231,6 +239,10 @@ def save(request, group_hash, event_id):
     attendee = attendee[0]
     attendance = EventAttendance.objects.filter(attendee=attendee, event=event)
 
+    # update the attendee with the new bool value
+    attendee.email_list = bool_listserv
+    attendee.save()
+
     if attendance:
         # attendance record already exists, do nothing but return success
         results_dict['status'] = 'success'
@@ -243,5 +255,6 @@ def save(request, group_hash, event_id):
         event=event,
         first_time=0
     )
+
     results_dict['status'] = 'success'
     return HttpResponse(json.dumps(results_dict))

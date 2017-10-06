@@ -21,7 +21,7 @@
     <body class="large-group-tracking">
         <div class="row">
             <div class="col-lg-8 col-lg-offset-4">
-                <h1>Welcome to {{ group_name }}!</h1>
+                <h1>welcome to {{ group_name }}!</h1>
             </div>
         </div>
         <div class="row">
@@ -39,6 +39,10 @@
                         <option value="{{ option.option_value }}">{{ option.option_value }}</option>
                     {% endfor %}
                 </select>
+                <div>
+                    <input id="checkBox" class="css-checkbox" name="emailList" type="checkbox" value="email" checked>
+                    <label id="checkBoxLabel" class="css-label" for="checkBox">add me to the AAIV listserv</label>
+                </div>
                 <button id="submitAttendance" class="btn btn-block btn-primary">Submit</button>
             </div>
             <div id="suggestionsList" class="col-md-5 col-lg-5">

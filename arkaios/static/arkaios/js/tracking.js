@@ -41,6 +41,7 @@ function submitClick(){
         lastName: $('#lastName').val().toLowerCase(),
         email: $('#email').val().toLowerCase(),
         year: $('select').val(),
+        listserv: $('#checkBox').prop('checked')
 	}, function(data) {
 		parseTrackingStatus(data);
 	});
