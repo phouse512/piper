@@ -21,50 +21,10 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.py
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.py
-#    - exclude-me-dir/**
-
-functions:
-  hello:
-    handler: handler.hello
-
-#      - schedule: rate(10 minutes)
-#      - sns: greeter-topic
-#      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
-#      - alexaSkill
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
-#      - iot:
-#          sql: "SELECT * FROM 'some_topic'"
-#      - cloudwatchEvent:
-#          event:
-#            source:
-#              - "aws.ec2"
-#            detail-type:
-#              - "EC2 Instance State-change Notification"
-#            detail:
-#              state:
-#                - pending
-#      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
-
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
 
 custom:
   stage: ${opt:stage, self:provider.stage}
+  tableName: piper-log-${self:custom.stage}
 
 # you can add CloudFormation resource templates here
 #resources:
@@ -83,7 +43,7 @@ resources:
     PiperLogTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: piper-log-${self:custom.stage}
+        TableName: ${self:custom.tableName}
         AttributeDefinitions:
           - AttributeName: service
             AttributeType: S
@@ -127,12 +87,52 @@ resources:
                     - "cloudwatch:DeleteAlarms"
                   Resource: "*"
 
-    PiperLogScalableTarget:
+    PiperLogWriteScalableTarget:
       Type: AWS::ApplicationAutoScaling::ScalableTarget
       Properties:
         MaxCapacity: 20
         MinCapacity: 3
-        ResourceId: ddd
-        RoleARN: ddfdsf
-        Scalable
+        ResourceId: "table/${self:custom.tableName}"
+        RoleARN:
+          Fn::GetAtt: [ ScalingRole, Arn ]
+        ScalableDimension: "dynamodb:table:WriteCapacityUnits"
+        ServiceNamespace: dynamodb
 
+    PiperLogWriteScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      Properties:
+        PolicyName: WriteAutoScalingPolicy
+        PolicyType: TargetTrackingScaling
+        ScalingTargetId:
+          Ref: PiperLogWriteScalableTarget
+        TargetTrackingScalingPolicyConfiguration:
+          TargetValue: 70
+          ScaleInCooldown: 60
+          ScaleOutCooldown: 60
+          PredefinedMetricSpecification:
+            PredefinedMetricType: DynamoDBWriteCapacityUtilization
+
+    PiperLogReadScalableTarget:
+      Type: AWS::ApplicationAutoScaling::ScalableTarget
+      Properties:
+        MaxCapacity: 20
+        MinCapacity: 3
+        ResourceId: "table/${self:custom.tableName}"
+        RoleARN:
+          Fn::GetAtt: [ ScalingRole, Arn ]
+        ScalableDimension: "dynamodb:table:ReadCapacityUnits"
+        ServiceNamespace: dynamodb
+
+    PiperLogReadScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      Properties:
+        PolicyName: ReadAutoScalingPolicy
+        PolicyType: TargetTrackingScaling
+        ScalingTargetId:
+          Ref: PiperLogReadScalableTarget
+        TargetTrackingScalingPolicyConfiguration:
+          TargetValue: 70
+          ScaleInCooldown: 60
+          ScaleOutCooldown: 60
+          PredefinedMetricSpecification:
+            PredefinedMetricType: DynamoDBReadCapacityUtilization
