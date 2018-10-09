@@ -21,25 +21,68 @@ provider:
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
 
-
 custom:
   stage: ${opt:stage, self:provider.stage}
   tableName: piper-log-${self:custom.stage}
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+  logGroupName: piper-log-group
+  backupLogStreamName: firehose-backup-log-${self:custom.stage}
+  firehoseLogStreamName: firehose-log-${self:custom.stage}
+  storageBucketArn: arn:aws:s3:::piper-log-storage
+  storageBackupBucketArn: arn:aws:s3:::piper-log-storage-backup
 
 resources:
   Resources:
+    PiperLogCloudwatchLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        RetentionInDays: 3653
+
+    BackupLogStream:
+      Type: AWS::Logs::LogStream
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        LogStreamName: ${self:custom.backupLogStreamName}
+
+    FirehoseLogStream:
+      Type: AWS::Logs::LogStream
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        LogStreamName: ${self:custom.firehoseLogStreamName}
+
+    PiperLogFirehose:
+      Type: AWS::KinesisFirehose::DeliveryStream
+      Properties:
+        DeliveryStreamName: piper-log-firehose-${self:custom.stage}
+        DeliveryStreamType: DirectPut
+        ExtendedS3DestinationConfiguration:
+          BucketARN: ${self:custom.storageBucketArn}
+          BufferingHints:
+            IntervalInSeconds: 900
+            SizeInMBs: 128
+          CloudWatchLoggingOptions:
+            Enabled: true
+            LogGroupName: ${self:custom.logGroupName}
+            LogStreamName: ${self:custom.firehoseLogStreamName}
+          CompressionFormat: UNCOMPRESSED
+          Prefix: v1-${self:custom.stage}/
+          RoleARN:
+            Fn::GetAtt: [ FirehoseMainRole, Arn]
+          S3BackupMode: Enabled
+          S3BackupConfiguration:
+            BucketARN: ${self:custom.storageBackupBucketArn}
+            BufferingHints:
+              IntervalInSeconds: 900
+              SizeInMBs: 128
+            CloudWatchLoggingOptions:
+              Enabled: true
+              LogGroupName: ${self:custom.logGroupName}
+              LogStreamName: firehose-backup-log-${self:custom.stage}
+            Prefix: v1-${self:custom.stage}-backup/
+            RoleARN:
+              Fn::GetAtt: [ FirehoseBackupRole, Arn ]
+            CompressionFormat: GZIP
+
     PiperLogTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -57,7 +100,85 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 3
           WriteCapacityUnits: 3
-    
+
+    FirehoseMainRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  sts:ExternalId: 095779082208
+        Path: "/"
+        Policies:
+          - PolicyName: Root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                    - "s3:PutObject"
+                  Resource:
+                    - ${self:custom.storageBucketArn}
+                    - ${self:custom.storageBucketArn}/*
+                - Effect: Allow
+                  Action:
+                    - "logs:PutLogEvents"
+                    - "logs:CreateLogStream"
+                  Resource:
+                    - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+
+    FirehoseBackupRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  sts:ExternalId: 095779082208
+        Path: "/"
+        Policies:
+          - PolicyName: Root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                    - "s3:PutObject"
+                  Resource:
+                    - ${self:custom.storageBackupBucketArn}
+                    - ${self:custom.storageBackupBucketArn}/*
+                - Effect: Allow
+                  Action:
+                    - "logs:PutLogEvents"
+                    - "logs:CreateLogStream"
+                  Resource:
+                    - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+
     ScalingRole:
       Type: AWS::IAM::Role
       Properties:
