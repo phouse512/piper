@@ -5,6 +5,21 @@ provider:
   runtime: python3.6
   region: us-east-1
 
+#functions:
+#  dynamodbHandler:
+#    handler: dynamo.handler
+#    name: piper-log-handler
+#    description: Handles all events written to piper log's dynamodb instance
+#    timeout: 10
+#    events:
+#      - stream:
+#          type: dynamodb
+#          arn:
+#            Fn::GetAtt: [ PiperLogTable, StreamArn ]
+#          batchSize: 50
+#          startingPosition: TRIM_HORIZON
+#          enabled: true
+
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
 #    - Effect: "Allow"
@@ -18,7 +33,7 @@ provider:
 #        Fn::Join:
 #          - ""
 #          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
+#            - "Ref" : "ServerlessDeploymentBucket"d
 #            - "/*"
 
 custom:
@@ -43,12 +58,14 @@ resources:
       Properties:
         LogGroupName: ${self:custom.logGroupName}
         LogStreamName: ${self:custom.backupLogStreamName}
+      DependsOn: PiperLogCloudwatchLogGroup
 
     FirehoseLogStream:
       Type: AWS::Logs::LogStream
       Properties:
         LogGroupName: ${self:custom.logGroupName}
         LogStreamName: ${self:custom.firehoseLogStreamName}
+      DependsOn: PiperLogCloudwatchLogGroup
 
     PiperLogFirehose:
       Type: AWS::KinesisFirehose::DeliveryStream
@@ -82,6 +99,7 @@ resources:
             RoleARN:
               Fn::GetAtt: [ FirehoseBackupRole, Arn ]
             CompressionFormat: GZIP
+      DependsOn: [ FirehoseMainRole, FirehoseBackupRole, FirehoseLogStream, BackupLogStream ]
 
     PiperLogTable:
       Type: AWS::DynamoDB::Table
@@ -139,6 +157,7 @@ resources:
                     - "logs:CreateLogStream"
                   Resource:
                     - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+      DependsOn: [ PiperLogCloudwatchLogGroup ]
 
     FirehoseBackupRole:
       Type: AWS::IAM::Role
@@ -178,6 +197,7 @@ resources:
                     - "logs:CreateLogStream"
                   Resource:
                     - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+      DependsOn: [ PiperLogCloudwatchLogGroup ]
 
     ScalingRole:
       Type: AWS::IAM::Role
@@ -218,6 +238,7 @@ resources:
           Fn::GetAtt: [ ScalingRole, Arn ]
         ScalableDimension: "dynamodb:table:WriteCapacityUnits"
         ServiceNamespace: dynamodb
+      DependsOn: [ ScalingRole, PiperLogTable ]
 
     PiperLogWriteScalingPolicy:
       Type: AWS::ApplicationAutoScaling::ScalingPolicy
@@ -232,6 +253,7 @@ resources:
           ScaleOutCooldown: 60
           PredefinedMetricSpecification:
             PredefinedMetricType: DynamoDBWriteCapacityUtilization
+      DependsOn: [ PiperLogWriteScalableTarget ]
 
     PiperLogReadScalableTarget:
       Type: AWS::ApplicationAutoScaling::ScalableTarget
@@ -243,6 +265,7 @@ resources:
           Fn::GetAtt: [ ScalingRole, Arn ]
         ScalableDimension: "dynamodb:table:ReadCapacityUnits"
         ServiceNamespace: dynamodb
+      DependsOn: [ ScalingRole, PiperLogTable ]
 
     PiperLogReadScalingPolicy:
       Type: AWS::ApplicationAutoScaling::ScalingPolicy
@@ -257,3 +280,4 @@ resources:
           ScaleOutCooldown: 60
           PredefinedMetricSpecification:
             PredefinedMetricType: DynamoDBReadCapacityUtilization
+      DependsOn: [ PiperLogReadScalableTarget ]
