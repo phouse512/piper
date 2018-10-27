@@ -4,40 +4,37 @@ provider:
   name: aws
   runtime: python3.6
   region: us-east-1
+  environment: ${file(env.yml):${self:custom.stage}}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "firehose:PutRecord"
+        - "firehose:PutRecordBatch"
+      Resource:
+        - Fn::GetAtt: [ PiperLogFirehose, Arn ]
 
-#functions:
-#  dynamodbHandler:
-#    handler: dynamo.handler
-#    name: piper-log-handler
-#    description: Handles all events written to piper log's dynamodb instance
-#    timeout: 10
-#    events:
-#      - stream:
-#          type: dynamodb
-#          arn:
-#            Fn::GetAtt: [ PiperLogTable, StreamArn ]
-#          batchSize: 50
-#          startingPosition: TRIM_HORIZON
-#          enabled: true
+plugins:
+  - serverless-python-requirements
 
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"d
-#            - "/*"
+functions:
+  dynamodbHandler:
+    handler: dynamo.handler
+    name: piper-log-handler
+    description: Handles all events written to piper log's dynamodb instance
+    timeout: 20
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [ PiperLogTable, StreamArn ]
+          batchSize: 50
+          startingPosition: TRIM_HORIZON
+          enabled: true
 
 custom:
   stage: ${opt:stage, self:provider.stage}
+  pythonRequirements:
+    dockerizePip: 'non-linux'
   tableName: piper-log-${self:custom.stage}
   logGroupName: piper-log-group
   backupLogStreamName: firehose-backup-log-${self:custom.stage}
@@ -118,6 +115,18 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 3
           WriteCapacityUnits: 3
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        TimeToLiveSpecification:
+          AttributeName: death_time
+          Enabled: true
+        Tags:
+          -
+            Key: service
+            Value: piper-log
+          -
+            Key: component
+            Value: dynamodb
 
     FirehoseMainRole:
       Type: AWS::IAM::Role
