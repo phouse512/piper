@@ -1,0 +1,292 @@
+service: piper-log
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: us-east-1
+  environment: ${file(env.yml):${self:custom.stage}}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "firehose:PutRecord"
+        - "firehose:PutRecordBatch"
+      Resource:
+        - Fn::GetAtt: [ PiperLogFirehose, Arn ]
+
+plugins:
+  - serverless-python-requirements
+
+functions:
+  dynamodbHandler:
+    handler: dynamo.handler
+    name: piper-log-handler
+    description: Handles all events written to piper log's dynamodb instance
+    timeout: 20
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt: [ PiperLogTable, StreamArn ]
+          batchSize: 50
+          startingPosition: TRIM_HORIZON
+          enabled: true
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  pythonRequirements:
+    dockerizePip: 'non-linux'
+  tableName: piper-log-${self:custom.stage}
+  logGroupName: piper-log-group
+  backupLogStreamName: firehose-backup-log-${self:custom.stage}
+  firehoseLogStreamName: firehose-log-${self:custom.stage}
+  storageBucketArn: arn:aws:s3:::piper-log-storage
+  storageBackupBucketArn: arn:aws:s3:::piper-log-storage-backup
+
+resources:
+  Resources:
+    PiperLogCloudwatchLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        RetentionInDays: 3653
+
+    BackupLogStream:
+      Type: AWS::Logs::LogStream
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        LogStreamName: ${self:custom.backupLogStreamName}
+      DependsOn: PiperLogCloudwatchLogGroup
+
+    FirehoseLogStream:
+      Type: AWS::Logs::LogStream
+      Properties:
+        LogGroupName: ${self:custom.logGroupName}
+        LogStreamName: ${self:custom.firehoseLogStreamName}
+      DependsOn: PiperLogCloudwatchLogGroup
+
+    PiperLogFirehose:
+      Type: AWS::KinesisFirehose::DeliveryStream
+      Properties:
+        DeliveryStreamName: piper-log-firehose-${self:custom.stage}
+        DeliveryStreamType: DirectPut
+        ExtendedS3DestinationConfiguration:
+          BucketARN: ${self:custom.storageBucketArn}
+          BufferingHints:
+            IntervalInSeconds: 900
+            SizeInMBs: 128
+          CloudWatchLoggingOptions:
+            Enabled: true
+            LogGroupName: ${self:custom.logGroupName}
+            LogStreamName: ${self:custom.firehoseLogStreamName}
+          CompressionFormat: UNCOMPRESSED
+          Prefix: v1-${self:custom.stage}/
+          RoleARN:
+            Fn::GetAtt: [ FirehoseMainRole, Arn]
+          S3BackupMode: Enabled
+          S3BackupConfiguration:
+            BucketARN: ${self:custom.storageBackupBucketArn}
+            BufferingHints:
+              IntervalInSeconds: 900
+              SizeInMBs: 128
+            CloudWatchLoggingOptions:
+              Enabled: true
+              LogGroupName: ${self:custom.logGroupName}
+              LogStreamName: firehose-backup-log-${self:custom.stage}
+            Prefix: v1-${self:custom.stage}-backup/
+            RoleARN:
+              Fn::GetAtt: [ FirehoseBackupRole, Arn ]
+            CompressionFormat: GZIP
+      DependsOn: [ FirehoseMainRole, FirehoseBackupRole, FirehoseLogStream, BackupLogStream ]
+
+    PiperLogTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.tableName}
+        AttributeDefinitions:
+          - AttributeName: service
+            AttributeType: S
+          - AttributeName: timestamp
+            AttributeType: N
+        KeySchema:
+          - AttributeName: service
+            KeyType: HASH
+          - AttributeName: timestamp
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 3
+          WriteCapacityUnits: 3
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+        TimeToLiveSpecification:
+          AttributeName: death_time
+          Enabled: true
+        Tags:
+          -
+            Key: service
+            Value: piper-log
+          -
+            Key: component
+            Value: dynamodb
+
+    FirehoseMainRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  sts:ExternalId: 095779082208
+        Path: "/"
+        Policies:
+          - PolicyName: Root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                    - "s3:PutObject"
+                  Resource:
+                    - ${self:custom.storageBucketArn}
+                    - ${self:custom.storageBucketArn}/*
+                - Effect: Allow
+                  Action:
+                    - "logs:PutLogEvents"
+                    - "logs:CreateLogStream"
+                  Resource:
+                    - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+      DependsOn: [ PiperLogCloudwatchLogGroup ]
+
+    FirehoseBackupRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "firehose.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+              Condition:
+                StringEquals:
+                  sts:ExternalId: 095779082208
+        Path: "/"
+        Policies:
+          - PolicyName: Root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "s3:AbortMultipartUpload"
+                    - "s3:GetBucketLocation"
+                    - "s3:GetObject"
+                    - "s3:ListBucket"
+                    - "s3:ListBucketMultipartUploads"
+                    - "s3:PutObject"
+                  Resource:
+                    - ${self:custom.storageBackupBucketArn}
+                    - ${self:custom.storageBackupBucketArn}/*
+                - Effect: Allow
+                  Action:
+                    - "logs:PutLogEvents"
+                    - "logs:CreateLogStream"
+                  Resource:
+                    - Fn::GetAtt: [ PiperLogCloudwatchLogGroup, Arn ]
+      DependsOn: [ PiperLogCloudwatchLogGroup ]
+
+    ScalingRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - "application-autoscaling.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - "dynamodb:DescribeTable"
+                    - "dynamodb:UpdateTable"
+                    - "cloudwatch:PutMetricAlarm"
+                    - "cloudwatch:DescribeAlarms"
+                    - "cloudwatch:GetMetricStatistics"
+                    - "cloudwatch:SetAlarmState"
+                    - "cloudwatch:DeleteAlarms"
+                  Resource: "*"
+
+    PiperLogWriteScalableTarget:
+      Type: AWS::ApplicationAutoScaling::ScalableTarget
+      Properties:
+        MaxCapacity: 20
+        MinCapacity: 3
+        ResourceId: "table/${self:custom.tableName}"
+        RoleARN:
+          Fn::GetAtt: [ ScalingRole, Arn ]
+        ScalableDimension: "dynamodb:table:WriteCapacityUnits"
+        ServiceNamespace: dynamodb
+      DependsOn: [ ScalingRole, PiperLogTable ]
+
+    PiperLogWriteScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      Properties:
+        PolicyName: WriteAutoScalingPolicy
+        PolicyType: TargetTrackingScaling
+        ScalingTargetId:
+          Ref: PiperLogWriteScalableTarget
+        TargetTrackingScalingPolicyConfiguration:
+          TargetValue: 70
+          ScaleInCooldown: 60
+          ScaleOutCooldown: 60
+          PredefinedMetricSpecification:
+            PredefinedMetricType: DynamoDBWriteCapacityUtilization
+      DependsOn: [ PiperLogWriteScalableTarget ]
+
+    PiperLogReadScalableTarget:
+      Type: AWS::ApplicationAutoScaling::ScalableTarget
+      Properties:
+        MaxCapacity: 20
+        MinCapacity: 3
+        ResourceId: "table/${self:custom.tableName}"
+        RoleARN:
+          Fn::GetAtt: [ ScalingRole, Arn ]
+        ScalableDimension: "dynamodb:table:ReadCapacityUnits"
+        ServiceNamespace: dynamodb
+      DependsOn: [ ScalingRole, PiperLogTable ]
+
+    PiperLogReadScalingPolicy:
+      Type: AWS::ApplicationAutoScaling::ScalingPolicy
+      Properties:
+        PolicyName: ReadAutoScalingPolicy
+        PolicyType: TargetTrackingScaling
+        ScalingTargetId:
+          Ref: PiperLogReadScalableTarget
+        TargetTrackingScalingPolicyConfiguration:
+          TargetValue: 70
+          ScaleInCooldown: 60
+          ScaleOutCooldown: 60
+          PredefinedMetricSpecification:
+            PredefinedMetricType: DynamoDBReadCapacityUtilization
+      DependsOn: [ PiperLogReadScalableTarget ]
