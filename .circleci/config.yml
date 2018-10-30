@@ -18,7 +18,8 @@ jobs:
     working_directory: ~/piper/serverless/piper-log
 
     steps:
-      - checkout
+      - checkout:
+          path: ~/piper
 
       # Download and cache dependencies
       - restore_cache:
