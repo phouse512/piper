@@ -19,7 +19,7 @@ plugins:
 functions:
   dynamodbHandler:
     handler: dynamo.handler
-    name: piper-log-handler
+    name: piper-log-handler-${self:custom.stage}
     description: Handles all events written to piper log's dynamodb instance
     timeout: 20
     events:
