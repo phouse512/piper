@@ -1,0 +1,2 @@
+db/conf/*.conf filter=git-crypt diff=git-crypt
+
