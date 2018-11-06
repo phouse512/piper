@@ -1,0 +1,1 @@
+-- create table for basic finance analysis
