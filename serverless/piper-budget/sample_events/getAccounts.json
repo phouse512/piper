@@ -20,9 +20,7 @@
     "X-Forwarded-Proto": "https",
     "amper-auth": "31c9295e257e4d1da9c1871705f83a0e"
   },
-  "pathParameters": {
-    "id": "1"
-  },
+  "pathParameters": {},
   "requestContext": {
     "accountId": "123456789012",
     "resourceId": "us4z18",
@@ -47,7 +45,9 @@
   },
   "resource": "/{proxy+}",
   "httpMethod": "GET",
-  "queryStringParameters": {},
+  "queryStringParameters": {
+    "budgetId": "1"
+  },
   "stageVariables": {
     "stageVarName": "stageVarValue"
   },
