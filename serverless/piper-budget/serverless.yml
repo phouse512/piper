@@ -9,16 +9,20 @@ provider:
   runtime: python3.6
   region: us-east-1
   environment: ${file(env.yml):${self:custom.stage}}
+  apiKeys:
+    - pipe-budget-${self:custom.stage}
   tags:
     service: piper-budget
     env: ${self:custom.stage}
 
 custom:
   stage: ${opt:stage, self:provider.stage}
+  pythonRequirements:
+    dockerizePip: true
 
 plugins:
   - serverless-python-requirements
-  - serverless-domain-manager
+#  - serverless-domain-manager
 
 functions:
   getBudget:
@@ -27,6 +31,7 @@ functions:
       - http:
           path: budgets/{id}
           method: get
+          private: true
     tags:
       operation: get-budget
 
@@ -36,6 +41,7 @@ functions:
       - http:
           path: accounts/
           method: get
+          private: true
     tags:
       operation: get-accounts
 
@@ -45,6 +51,7 @@ functions:
       - http:
           path: accounts/
           method: post
+          private: true
     tags:
       operation: post-account
 
