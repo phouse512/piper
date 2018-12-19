@@ -64,7 +64,8 @@ class Record(db.Entity):
 
 
 db.bind(provider="postgres", host=os.environ["DB_HOST"], database=os.environ["DB_NAME"],
-        user=os.environ["DB_USER"], port=os.environ["DB_PORT"], application_name="piper-budget")
+        user=os.environ["DB_USER"], port=os.environ["DB_PORT"],
+        password=os.environ["DB_PASSWORD"], application_name="piper-budget")
 
 if os.environ.get("DEBUG", "false") == "true":
     set_sql_debug(True)
